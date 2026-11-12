@@ -2,7 +2,8 @@ node_modules
 tests
 test-results
 playwright-report
-scripts
+scripts/serve.mjs
+scripts/screenshots.mjs
 docs
 package.json
 package-lock.json
