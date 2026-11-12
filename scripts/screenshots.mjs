@@ -1,0 +1,28 @@
+import { chromium as playwright } from '@playwright/test';
+import chromium from '@sparticuz/chromium';
+import { mkdir } from 'node:fs/promises';
+
+const browser = await playwright.launch({ executablePath: await chromium.executablePath(), args: chromium.args });
+const page = await browser.newPage({ viewport: { width: 1440, height: 1080 }, deviceScaleFactor: 1 });
+const errors = [];
+page.on('pageerror', error => errors.push(error.message));
+page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
+await mkdir('docs/screenshots', { recursive: true });
+await page.goto('http://127.0.0.1:3000', { waitUntil: 'networkidle' });
+await page.evaluate(() => document.fonts.ready);
+await page.waitForFunction(() => document.querySelectorAll('.style-card').length === 5);
+await page.screenshot({ path: 'docs/screenshots/home.png' });
+await page.screenshot({ path: 'docs/screenshots/home-full.png', fullPage: true });
+await page.goto('http://127.0.0.1:3000/editor.html?demo=1&preset=nebula-tint', { waitUntil: 'networkidle' });
+await page.waitForFunction(() => document.querySelector('#preview-canvas').width > 100 && document.querySelector('#loading-overlay').hidden);
+await page.waitForTimeout(1200);
+await page.screenshot({ path: 'docs/screenshots/editor.png' });
+await page.setViewportSize({ width: 390, height: 844 });
+await page.goto('http://127.0.0.1:3000', { waitUntil: 'networkidle' });
+await page.screenshot({ path: 'docs/screenshots/home-mobile.png' });
+await page.goto('http://127.0.0.1:3000/editor.html?demo=1', { waitUntil: 'networkidle' });
+await page.waitForFunction(() => document.querySelector('#preview-canvas').width > 100 && document.querySelector('#loading-overlay').hidden);
+await page.screenshot({ path: 'docs/screenshots/editor-mobile.png' });
+console.log(JSON.stringify({ errors }, null, 2));
+await browser.close();
+if (errors.length) process.exitCode = 1;

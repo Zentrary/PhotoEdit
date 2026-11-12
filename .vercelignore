@@ -1,0 +1,12 @@
+node_modules
+tests
+test-results
+playwright-report
+scripts
+docs
+package.json
+package-lock.json
+playwright.config.js
+.git
+.gitignore
+.vercel
