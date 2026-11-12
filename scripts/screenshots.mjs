@@ -23,6 +23,12 @@ await page.waitForFunction(() => document.querySelector('#preview-canvas').width
 await page.waitForFunction(() => [...document.querySelectorAll('.preset-card canvas')].slice(0, 8).every(canvas => canvas.getContext('2d').getImageData(0, 0, 1, 1).data[3] > 0), { timeout: 20000 }).catch(() => {});
 await page.waitForTimeout(300);
 await page.screenshot({ path: 'docs/screenshots/editor.png' });
+await page.locator('[data-tool="stickers"]').click();
+await page.locator('[data-sticker-tab="emoji"]').click();
+await page.waitForSelector('.emoji-option');
+await page.evaluate(async () => { await document.fonts.load('30px "Noto Color Emoji"', '😀👋❤️'); await document.fonts.ready; });
+await page.waitForTimeout(300);
+await page.screenshot({ path: 'docs/screenshots/editor-emoji.png' });
 await page.setViewportSize({ width: 390, height: 844 });
 await page.goto('http://127.0.0.1:3000', { waitUntil: 'networkidle' });
 await page.screenshot({ path: 'docs/screenshots/home-mobile.png' });

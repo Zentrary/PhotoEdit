@@ -15,8 +15,7 @@ export const frameTypes = [
   { id: 'corners', name: 'มุมภาพ' }, { id: 'checker', name: 'ตารางหมากรุก' }, { id: 'rainbow', name: 'สายรุ้ง' },
   { id: 'hearts', name: 'หัวใจ' }, { id: 'stars', name: 'ดวงดาว' }
 ];
-export const stickerTypes = ['star', 'heart', 'moon', 'planet', 'sparkle', 'flower', 'bolt', 'butterfly', 'smile', 'cherry', 'diamond', 'music', 'sun', 'cloud', 'rainbow', 'rocket', 'ufo', 'comet', 'crown', 'camera', 'cassette', 'floppy', 'gamepad', 'gift', 'balloon', 'cake', 'icecream', 'coffee', 'pizza', 'strawberry', 'leaf', 'cactus', 'paw', 'peace', 'fire', 'drop', 'snowflake', 'mountain', 'wave', 'shell'];
-export const emojiTypes = ["😀","😄","😆","🥹","😊","😍","😘","😎","🤩","🥳","😜","🤪","😇","🫶","👏","🤝","🤞","💪","❤️","🩷","🧡","💛","💚","💙","💜","🤍","💗","💓","💞","💕","✨","⭐","💫","🔥","☀️","⛅","❄️","☃️","🌙","🌚","🚀","🛸","🌍","🌸","🌼","🌻","🌹","🍀","🌵","🍓","🍒","🍑","🍕","🍔","🍟","🍰","🧁","🍪","☕","🧋","🎂","🎁","🎈","🎉","🎊","🎵","🎶","🎧","🎮","💾","📼","📷","💎","🦋","🐱","🐰","🐼","🐝","🏝️","🏖️","🎡","🎠","🛼","💌","🔮","💯","✅","❌","❓","❗"];
+export const stickerTypes = ['star', 'heart', 'moon', 'planet', 'sparkle', 'flower', 'bolt', 'butterfly', 'smile', 'cherry', 'diamond', 'music', 'sun', 'cloud', 'rainbow', 'rocket', 'ufo', 'comet', 'crown', 'camera', 'cassette', 'floppy', 'gamepad', 'gift', 'balloon', 'cake', 'icecream', 'coffee', 'pizza', 'strawberry', 'leaf', 'cactus', 'paw', 'peace', 'fire', 'drop', 'snowflake', 'mountain', 'wave', 'shell', 'clover', 'mushroom', 'ghost', 'alien', 'eyes', 'lips', 'speech', 'umbrella', 'palm', 'airplane', 'car', 'bicycle', 'sailboat', 'anchor', 'telescope', 'ring', 'lipstick', 'palette', 'book', 'letter', 'phone', 'headphones', 'guitar', 'dice', 'trophy', 'medal', 'soccer', 'basketball', 'dumbbell', 'wand', 'potion', 'key', 'bulb', 'candle', 'teddy', 'bow', 'confetti', 'firework', 'partyhat', 'crescent'];
 export function initialState() {
   return {
     preset: null, presetStrength: 80,
@@ -86,16 +85,19 @@ function drawGeometry(source, state, scale) {
   return canvas;
 }
 function colorPass(canvas, values) {
-  if (!values.warmth && !values.tint && !values.fade && !values.chromatic) return canvas;
+  const keys = ['warmth', 'tint', 'fade', 'chromatic', 'exposure', 'highlights', 'shadows', 'whites', 'blacks', 'vibrance', 'clarity', 'sepia', 'grayscale'];
+  if (!keys.some(key => values[key])) return canvas;
   const context = canvas.getContext('2d', { willReadFrequently: true });
   const image = context.getImageData(0, 0, canvas.width, canvas.height);
   const data = image.data;
   const original = values.chromatic ? new Uint8ClampedArray(data) : data;
   const warm = values.warmth * 0.65, tint = values.tint * 0.4, fade = values.fade / 100;
-  const shift = Math.round(values.chromatic / 100 * canvas.width * 0.007);
+  const shift = values.chromatic ? Math.max(1, Math.round(values.chromatic / 100 * canvas.width * 0.007)) : 0;
+  const exposure = Math.pow(2, values.exposure / 100);
   for (let y = 0; y < canvas.height; y++) {
     for (let x = 0; x < canvas.width; x++) {
       const index = (y * canvas.width + x) * 4;
+      if (!data[index + 3]) continue;
       if (shift) {
         data[index] = original[(y * canvas.width + Math.min(canvas.width - 1, x + shift)) * 4];
         data[index + 2] = original[(y * canvas.width + Math.max(0, x - shift)) * 4 + 2];
@@ -106,6 +108,46 @@ function colorPass(canvas, values) {
         value = value * (1 - fade * 0.28) + 245 * fade * 0.28;
         data[index + channel] = clamp(value, 0, 255);
       }
+      let r = data[index], g = data[index + 1], b = data[index + 2];
+      const luminance = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
+      const shadowMask = Math.pow(1 - luminance, 2), highlightMask = luminance * luminance;
+      const whiteMask = Math.max(0, (luminance - 0.6) / 0.4), blackMask = Math.max(0, (0.4 - luminance) / 0.4);
+      const tonal = values.shadows * shadowMask * 0.9 + values.highlights * highlightMask * 0.9 + values.whites * whiteMask * 0.7 + values.blacks * blackMask * 0.7;
+      const midtone = 1 - Math.abs(luminance - 0.5) * 2;
+      const gray = r * 0.299 + g * 0.587 + b * 0.114;
+      const max = Math.max(r, g, b), min = Math.min(r, g, b);
+      const vibrance = values.vibrance / 100 * (1 - (max - min) / 255) * 1.4;
+      r = gray + (r - gray) * (1 + vibrance); g = gray + (g - gray) * (1 + vibrance); b = gray + (b - gray) * (1 + vibrance);
+      const sepia = values.sepia / 100, mono = values.grayscale / 100;
+      const sr = r * 0.393 + g * 0.769 + b * 0.189, sg = r * 0.349 + g * 0.686 + b * 0.168, sb = r * 0.272 + g * 0.534 + b * 0.131;
+      r += (sr - r) * sepia; g += (sg - g) * sepia; b += (sb - b) * sepia;
+      const neutral = r * 0.299 + g * 0.587 + b * 0.114;
+      r += (neutral - r) * mono; g += (neutral - g) * mono; b += (neutral - b) * mono;
+      for (let channel = 0; channel < 3; channel++) {
+        let value = channel === 0 ? r : channel === 1 ? g : b;
+        value *= exposure;
+        value += tonal;
+        value = (value - 128) * (1 + values.clarity / 100 * midtone * 0.8) + 128;
+        data[index + channel] = clamp(value, 0, 255);
+      }
+    }
+  }
+  context.putImageData(image, 0, 0);
+  return canvas;
+}
+function sharpenPass(canvas, amount) {
+  if (!amount) return canvas;
+  const context = canvas.getContext('2d', { willReadFrequently: true });
+  const image = context.getImageData(0, 0, canvas.width, canvas.height);
+  const original = new Uint8ClampedArray(image.data), data = image.data;
+  const strength = amount / 100, width = canvas.width, height = canvas.height;
+  for (let y = 1; y < height - 1; y++) for (let x = 1; x < width - 1; x++) {
+    const index = (y * width + x) * 4;
+    if (!data[index + 3]) continue;
+    for (let channel = 0; channel < 3; channel++) {
+      const center = original[index + channel];
+      const neighbors = original[index - 4 + channel] + original[index + 4 + channel] + original[index - width * 4 + channel] + original[index + width * 4 + channel];
+      data[index + channel] = clamp(center + (center * 4 - neighbors) * strength * 0.5, 0, 255);
     }
   }
   context.putImageData(image, 0, 0);
@@ -167,7 +209,7 @@ function applyEffects(canvas, values) {
   const width = canvas.width, height = canvas.height, unit = Math.min(width, height);
   const random = randomGenerator(721);
   context.save();
-  const overlayKeys = ['glow', 'leak', 'vignette', 'grain', 'scanlines', 'dust', 'sparkle', 'fog', 'bokeh', 'rain', 'snow', 'scratches', 'glitch', 'motionBlur', 'radialBlur', 'tiltShift'];
+  const overlayKeys = ['glow', 'leak', 'vignette', 'grain', 'scanlines', 'dust', 'sparkle', 'fog', 'bokeh', 'rain', 'snow', 'scratches', 'glitch', 'motionBlur', 'radialBlur', 'tiltShift', 'bloom', 'lightRays', 'starburst', 'doubleExposure', 'tracking'];
   const alphaMask = overlayKeys.some(key => values[key] > 0) ? makeCanvas(width, height) : null;
   if (alphaMask) alphaMask.getContext('2d').drawImage(canvas, 0, 0);
   if (values.pixelate > 0) {
@@ -412,6 +454,86 @@ function applyEffects(canvas, values) {
       star(context, x, y, (0.002 + random() * 0.005) * unit, `rgba(245,239,255,${0.3 + random() * 0.65})`);
     }
   }
+  if (values.bloom > 0) {
+    const layer = makeCanvas(width, height), layerContext = layer.getContext('2d');
+    layerContext.filter = `blur(${unit * 0.025}px) brightness(1.45)`; layerContext.drawImage(canvas, 0, 0);
+    blendLayer(canvas, layer, values.bloom * 0.7, 'screen');
+  }
+  if (values.lightRays > 0) {
+    context.save(); context.globalCompositeOperation = 'screen'; context.translate(width * 0.82, height * 0.12);
+    for (let index = 0; index < 12; index++) {
+      context.rotate(Math.PI / 6); const gradient = context.createLinearGradient(0, 0, unit, 0);
+      gradient.addColorStop(0, `rgba(255,236,190,${values.lightRays / 180})`); gradient.addColorStop(1, 'rgba(255,236,190,0)');
+      context.fillStyle = gradient; context.beginPath(); context.moveTo(0, 0); context.lineTo(unit, -unit * 0.035); context.lineTo(unit, unit * 0.035); context.fill();
+    }
+    context.restore();
+  }
+  if (values.starburst > 0) {
+    context.save(); context.globalCompositeOperation = 'screen'; context.strokeStyle = `rgba(235,220,255,${values.starburst / 150})`; context.lineWidth = Math.max(1, unit / 500);
+    for (let index = 0; index < 24; index++) { const angle = index * Math.PI / 12; context.beginPath(); context.moveTo(width / 2, height / 2); context.lineTo(width / 2 + Math.cos(angle) * unit, height / 2 + Math.sin(angle) * unit); context.stroke(); }
+    context.restore();
+  }
+  if (values.prism > 0) blendLayer(canvas, pixelLayer(canvas, data => {
+    const copy = new Uint8ClampedArray(data), offset = Math.max(1, Math.round(unit * values.prism / 1200));
+    for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) { const index = (y * width + x) * 4; data[index] = copy[(y * width + Math.min(width - 1, x + offset)) * 4]; data[index + 1] = copy[(Math.min(height - 1, y + offset) * width + x) * 4 + 1]; data[index + 2] = copy[(y * width + Math.max(0, x - offset)) * 4 + 2]; }
+  }, values.prism), 100, 'copy');
+  if (values.colorNoise > 0) blendLayer(canvas, pixelLayer(canvas, data => {
+    for (let index = 0; index < data.length; index += 4) for (let channel = 0; channel < 3; channel++) data[index + channel] = clamp(data[index + channel] + (random() - 0.5) * 180, 0, 255);
+  }, values.colorNoise), 100, 'copy');
+  if (values.dither > 0) blendLayer(canvas, pixelLayer(canvas, data => {
+    const bayer = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+    for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) { const index = (y * width + x) * 4; const value = data[index] * 0.299 + data[index + 1] * 0.587 + data[index + 2] * 0.114 > bayer[(y % 4) * 4 + x % 4] * 16 ? 255 : 0; data[index] = data[index + 1] = data[index + 2] = value; }
+  }, values.dither), 100, 'copy');
+  if (values.emboss > 0 || values.edges > 0) blendLayer(canvas, pixelLayer(canvas, data => {
+    const copy = new Uint8ClampedArray(data);
+    for (let y = 1; y < height - 1; y++) for (let x = 1; x < width - 1; x++) {
+      const index = (y * width + x) * 4;
+      const sample = (dx, dy) => { const i = ((y + dy) * width + x + dx) * 4; return copy[i] * 0.299 + copy[i + 1] * 0.587 + copy[i + 2] * 0.114; };
+      let value;
+      if (values.emboss > 0) value = clamp(128 + sample(1, 1) - sample(-1, -1) + (sample(1, 0) - sample(-1, 0)) * 0.5, 0, 255);
+      else { const gx = -sample(-1, -1) - 2 * sample(-1, 0) - sample(-1, 1) + sample(1, -1) + 2 * sample(1, 0) + sample(1, 1); const gy = -sample(-1, -1) - 2 * sample(0, -1) - sample(1, -1) + sample(-1, 1) + 2 * sample(0, 1) + sample(1, 1); value = clamp(Math.hypot(gx, gy), 0, 255); }
+      data[index] = data[index + 1] = data[index + 2] = value;
+    }
+  }, Math.max(values.emboss, values.edges)), 100, 'copy');
+  if (values.mirror > 0) {
+    const layer = makeCanvas(width, height), layerContext = layer.getContext('2d'); layerContext.drawImage(canvas, 0, 0);
+    layerContext.save(); layerContext.translate(width, 0); layerContext.scale(-1, 1); layerContext.drawImage(canvas, 0, 0, width / 2, height, 0, 0, width / 2, height); layerContext.restore();
+    blendLayer(canvas, layer, values.mirror, 'copy');
+  }
+  if (values.kaleidoscope > 0) {
+    const layer = makeCanvas(width, height), layerContext = layer.getContext('2d'); layerContext.drawImage(canvas, 0, 0);
+    layerContext.save(); layerContext.translate(width / 2, height / 2);
+    for (let index = 0; index < 8; index++) { layerContext.save(); layerContext.rotate(index * Math.PI / 4); layerContext.beginPath(); layerContext.moveTo(0, 0); layerContext.arc(0, 0, Math.hypot(width, height), 0, Math.PI / 4); layerContext.closePath(); layerContext.clip(); layerContext.rotate(-index * Math.PI / 8); layerContext.drawImage(canvas, -width / 2, -height / 2); layerContext.restore(); }
+    layerContext.restore(); blendLayer(canvas, layer, values.kaleidoscope, 'copy');
+  }
+  if (values.fisheye > 0 || values.swirl > 0) blendLayer(canvas, pixelLayer(canvas, data => {
+    const copy = new Uint8ClampedArray(data), cx = width / 2, cy = height / 2, radius = Math.min(cx, cy);
+    for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+      const dx = (x - cx) / radius, dy = (y - cy) / radius, distance = Math.hypot(dx, dy);
+      let sx = x, sy = y;
+      if (distance < 1) {
+        if (values.fisheye > 0) { const factor = 1 - values.fisheye / 100 * (1 - distance) * 0.65; sx = cx + dx * radius * factor; sy = cy + dy * radius * factor; }
+        if (values.swirl > 0) { const angle = values.swirl / 100 * (1 - distance) * 3; sx = cx + (dx * Math.cos(angle) - dy * Math.sin(angle)) * radius; sy = cy + (dx * Math.sin(angle) + dy * Math.cos(angle)) * radius; }
+      }
+      const index = (y * width + x) * 4, sourceIndex = (clamp(Math.round(sy), 0, height - 1) * width + clamp(Math.round(sx), 0, width - 1)) * 4;
+      for (let channel = 0; channel < 4; channel++) data[index + channel] = copy[sourceIndex + channel];
+    }
+  }, Math.max(values.fisheye, values.swirl)), 100, 'copy');
+  if (values.doubleExposure > 0) {
+    const layer = makeCanvas(width, height), layerContext = layer.getContext('2d'); layerContext.translate(width, height); layerContext.rotate(Math.PI); layerContext.drawImage(canvas, 0, 0);
+    blendLayer(canvas, layer, values.doubleExposure * 0.65, 'screen');
+  }
+  if (values.tracking > 0) {
+    const copy = makeCanvas(width, height); copy.getContext('2d').drawImage(canvas, 0, 0);
+    for (let index = 0; index < 6; index++) { const y = Math.floor(height * (0.15 + index * 0.13)), h = Math.max(2, height * 0.025); context.drawImage(copy, 0, y, width, h, (random() - 0.5) * width * values.tracking / 300, y, width, h); }
+    context.fillStyle = `rgba(255,255,255,${values.tracking / 500})`; context.fillRect(0, height * 0.72, width, Math.max(2, height * 0.02));
+  }
+  if (values.colorDodge > 0) blendLayer(canvas, pixelLayer(canvas, data => {
+    for (let index = 0; index < data.length; index += 4) for (let channel = 0; channel < 3; channel++) data[index + channel] = clamp(data[index + channel] * 1.35 + 25, 0, 255);
+  }, values.colorDodge), 100, 'screen');
+  if (values.bleach > 0) blendLayer(canvas, pixelLayer(canvas, data => {
+    for (let index = 0; index < data.length; index += 4) { const gray = data[index] * 0.299 + data[index + 1] * 0.587 + data[index + 2] * 0.114; for (let channel = 0; channel < 3; channel++) data[index + channel] = clamp((data[index + channel] * 0.35 + gray * 0.65 - 128) * 1.35 + 128, 0, 255); }
+  }, values.bleach), 100, 'copy');
   if (alphaMask) {
     context.globalCompositeOperation = 'destination-in';
     context.drawImage(alphaMask, 0, 0);
@@ -595,6 +717,86 @@ export function drawSticker(context, type, size, color) {
   } else if (type === 'shell') {
     context.beginPath(); context.arc(0, size * 0.1, size * 0.42, Math.PI, 0); context.lineTo(0, size * 0.42); context.closePath(); context.fill();
     context.strokeStyle = '#ffffff99'; for (const x of [-0.24, -0.08, 0.08, 0.24]) { context.beginPath(); context.moveTo(0, size * 0.4); context.lineTo(x * size, -size * 0.22); context.stroke(); }
+  } else if (type === 'clover') {
+    for (const [x, y] of [[-0.18,-0.18],[0.18,-0.18],[-0.18,0.18],[0.18,0.18]]) { context.beginPath(); context.arc(x*size,y*size,size*0.2,0,Math.PI*2); context.fill(); }
+  } else if (type === 'mushroom') {
+    context.beginPath(); context.arc(0,0,size*0.44,Math.PI,0); context.fill(); context.fillRect(-size*0.12,0,size*0.24,size*0.42);
+  } else if (type === 'ghost') {
+    context.beginPath(); context.arc(0,-size*0.1,size*0.34,Math.PI,0); context.lineTo(size*0.34,size*0.4); context.quadraticCurveTo(0,size*0.2,-size*0.34,size*0.4); context.fill(); context.fillStyle='#241b38'; for(const x of [-0.12,0.12]){context.beginPath();context.arc(x*size,-size*0.1,size*0.045,0,Math.PI*2);context.fill();}
+  } else if (type === 'alien') {
+    context.beginPath(); context.ellipse(0,0,size*0.32,size*0.44,0,0,Math.PI*2); context.fill(); context.fillStyle='#241b38'; for(const x of [-0.13,0.13]){context.beginPath();context.ellipse(x*size,-size*0.05,size*0.07,size*0.12,x*2,0,Math.PI*2);context.fill();}
+  } else if (type === 'eyes') {
+    for(const x of [-0.22,0.22]){context.beginPath();context.ellipse(x*size,0,size*0.18,size*0.26,0,0,Math.PI*2);context.stroke();context.beginPath();context.arc(x*size,size*0.04,size*0.08,0,Math.PI*2);context.fill();}
+  } else if (type === 'lips') {
+    context.beginPath();context.moveTo(-size*0.45,0);context.quadraticCurveTo(-size*0.2,-size*0.3,0,-size*0.1);context.quadraticCurveTo(size*0.2,-size*0.3,size*0.45,0);context.quadraticCurveTo(0,size*0.45,-size*0.45,0);context.fill();
+  } else if (type === 'speech') {
+    context.beginPath();context.roundRect(-size*0.44,-size*0.32,size*0.88,size*0.56,size*0.12);context.fill();context.beginPath();context.moveTo(-size*0.1,size*0.22);context.lineTo(-size*0.2,size*0.46);context.lineTo(size*0.12,size*0.22);context.fill();
+  } else if (type === 'umbrella') {
+    context.beginPath();context.arc(0,0,size*0.44,Math.PI,0);context.fill();context.beginPath();context.moveTo(0,0);context.lineTo(0,size*0.36);context.arc(-size*0.1,size*0.36,size*0.1,0,Math.PI);context.stroke();
+  } else if (type === 'palm') {
+    context.beginPath();context.moveTo(0,size*0.46);context.quadraticCurveTo(size*0.08,0,0,-size*0.2);context.stroke();for(let i=0;i<5;i++){const a=Math.PI+i*Math.PI/4;context.beginPath();context.moveTo(0,-size*0.2);context.quadraticCurveTo(Math.cos(a)*size*0.3,-size*0.45,Math.cos(a)*size*0.46,-size*0.2+Math.sin(a)*size*0.2);context.stroke();}
+  } else if (type === 'airplane') {
+    context.beginPath();context.moveTo(0,-size*0.5);context.lineTo(size*0.1,-size*0.1);context.lineTo(size*0.48,size*0.12);context.lineTo(size*0.1,size*0.16);context.lineTo(size*0.08,size*0.42);context.lineTo(0,size*0.34);context.lineTo(-size*0.08,size*0.42);context.lineTo(-size*0.1,size*0.16);context.lineTo(-size*0.48,size*0.12);context.lineTo(-size*0.1,-size*0.1);context.closePath();context.fill();
+  } else if (type === 'car') {
+    context.beginPath();context.roundRect(-size*0.44,-size*0.05,size*0.88,size*0.3,size*0.08);context.fill();context.beginPath();context.moveTo(-size*0.28,-size*0.05);context.lineTo(-size*0.16,-size*0.28);context.lineTo(size*0.18,-size*0.28);context.lineTo(size*0.3,-size*0.05);context.fill();context.fillStyle='#241b38';for(const x of [-0.26,0.26]){context.beginPath();context.arc(x*size,size*0.26,size*0.1,0,Math.PI*2);context.fill();}
+  } else if (type === 'bicycle') {
+    for(const x of [-0.26,0.26]){context.beginPath();context.arc(x*size,size*0.18,size*0.2,0,Math.PI*2);context.stroke();}context.beginPath();context.moveTo(-size*0.26,size*0.18);context.lineTo(-size*0.06,-size*0.16);context.lineTo(size*0.14,size*0.18);context.lineTo(-size*0.26,size*0.18);context.moveTo(-size*0.06,-size*0.16);context.lineTo(size*0.2,-size*0.16);context.lineTo(size*0.26,size*0.18);context.stroke();
+  } else if (type === 'sailboat') {
+    context.beginPath();context.moveTo(-size*0.42,size*0.18);context.lineTo(size*0.42,size*0.18);context.lineTo(size*0.24,size*0.4);context.lineTo(-size*0.24,size*0.4);context.closePath();context.fill();context.beginPath();context.moveTo(0,-size*0.46);context.lineTo(0,size*0.12);context.lineTo(size*0.36,size*0.12);context.closePath();context.fill();
+  } else if (type === 'anchor') {
+    context.beginPath();context.arc(0,-size*0.32,size*0.1,0,Math.PI*2);context.stroke();context.beginPath();context.moveTo(0,-size*0.22);context.lineTo(0,size*0.4);context.moveTo(-size*0.2,-size*0.05);context.lineTo(size*0.2,-size*0.05);context.moveTo(-size*0.36,size*0.16);context.quadraticCurveTo(0,size*0.56,size*0.36,size*0.16);context.stroke();
+  } else if (type === 'telescope') {
+    context.save();context.rotate(-0.5);context.fillRect(-size*0.36,-size*0.12,size*0.72,size*0.22);context.restore();context.beginPath();context.moveTo(0,size*0.05);context.lineTo(-size*0.24,size*0.46);context.moveTo(0,size*0.05);context.lineTo(size*0.24,size*0.46);context.stroke();
+  } else if (type === 'ring') {
+    context.beginPath();context.arc(0,size*0.1,size*0.3,0,Math.PI*2);context.stroke();context.beginPath();context.moveTo(0,-size*0.46);context.lineTo(size*0.14,-size*0.28);context.lineTo(0,-size*0.14);context.lineTo(-size*0.14,-size*0.28);context.closePath();context.fill();
+  } else if (type === 'lipstick') {
+    context.fillRect(-size*0.16,0,size*0.32,size*0.42);context.beginPath();context.moveTo(-size*0.12,0);context.lineTo(-size*0.12,-size*0.34);context.lineTo(size*0.12,-size*0.46);context.lineTo(size*0.12,0);context.fill();
+  } else if (type === 'palette') {
+    context.beginPath();context.ellipse(0,0,size*0.44,size*0.36,0,0,Math.PI*2);context.fill();context.fillStyle='#241b38';for(const [x,y] of [[-0.2,-0.1],[0,-0.18],[0.2,-0.08],[0.16,0.14]]){context.beginPath();context.arc(x*size,y*size,size*0.055,0,Math.PI*2);context.fill();}
+  } else if (type === 'book') {
+    context.beginPath();context.roundRect(-size*0.36,-size*0.44,size*0.72,size*0.88,size*0.05);context.fill();context.strokeStyle='#ffffff99';context.beginPath();context.moveTo(-size*0.2,-size*0.44);context.lineTo(-size*0.2,size*0.44);context.stroke();
+  } else if (type === 'letter') {
+    context.beginPath();context.roundRect(-size*0.44,-size*0.3,size*0.88,size*0.6,size*0.05);context.fill();context.strokeStyle='#241b38';context.beginPath();context.moveTo(-size*0.42,-size*0.26);context.lineTo(0,size*0.06);context.lineTo(size*0.42,-size*0.26);context.stroke();
+  } else if (type === 'phone') {
+    context.beginPath();context.roundRect(-size*0.24,-size*0.46,size*0.48,size*0.92,size*0.08);context.fill();context.fillStyle='#241b38';context.fillRect(-size*0.17,-size*0.32,size*0.34,size*0.56);
+  } else if (type === 'headphones') {
+    context.beginPath();context.arc(0,0,size*0.36,Math.PI,0);context.stroke();context.fillRect(-size*0.44,0,size*0.18,size*0.32);context.fillRect(size*0.26,0,size*0.18,size*0.32);
+  } else if (type === 'guitar') {
+    context.beginPath();context.ellipse(0,size*0.2,size*0.26,size*0.3,0,0,Math.PI*2);context.fill();context.fillRect(-size*0.05,-size*0.46,size*0.1,size*0.5);context.fillStyle='#241b38';context.beginPath();context.arc(0,size*0.16,size*0.08,0,Math.PI*2);context.fill();
+  } else if (type === 'dice') {
+    context.beginPath();context.roundRect(-size*0.38,-size*0.38,size*0.76,size*0.76,size*0.1);context.fill();context.fillStyle='#241b38';for(const [x,y] of [[-0.18,-0.18],[0.18,-0.18],[0,0],[-0.18,0.18],[0.18,0.18]]){context.beginPath();context.arc(x*size,y*size,size*0.055,0,Math.PI*2);context.fill();}
+  } else if (type === 'trophy') {
+    context.beginPath();context.moveTo(-size*0.28,-size*0.4);context.lineTo(size*0.28,-size*0.4);context.lineTo(size*0.18,size*0.1);context.quadraticCurveTo(0,size*0.26,-size*0.18,size*0.1);context.closePath();context.fill();context.fillRect(-size*0.05,size*0.16,size*0.1,size*0.18);context.fillRect(-size*0.24,size*0.34,size*0.48,size*0.1);
+  } else if (type === 'medal') {
+    context.beginPath();context.moveTo(-size*0.24,-size*0.46);context.lineTo(0,-size*0.1);context.lineTo(size*0.24,-size*0.46);context.stroke();context.beginPath();context.arc(0,size*0.14,size*0.28,0,Math.PI*2);context.fill();
+  } else if (type === 'soccer' || type === 'basketball') {
+    context.beginPath();context.arc(0,0,size*0.43,0,Math.PI*2);context.stroke();context.beginPath();
+    if(type==='soccer'){for(let i=0;i<5;i++){const a=i*Math.PI*2/5-Math.PI/2;const x=Math.cos(a)*size*0.16,y=Math.sin(a)*size*0.16;i?context.lineTo(x,y):context.moveTo(x,y);}context.closePath();context.stroke();}
+    else {context.moveTo(-size*0.43,0);context.lineTo(size*0.43,0);context.moveTo(0,-size*0.43);context.lineTo(0,size*0.43);context.stroke();context.beginPath();context.arc(-size*0.5,0,size*0.35,-Math.PI/2,Math.PI/2);context.stroke();}
+  } else if (type === 'dumbbell') {
+    context.fillRect(-size*0.24,-size*0.06,size*0.48,size*0.12);for(const x of [-0.34,0.22]){context.fillRect(x*size,-size*0.28,size*0.12,size*0.56);}
+  } else if (type === 'wand') {
+    context.beginPath();context.moveTo(-size*0.36,size*0.42);context.lineTo(size*0.18,-size*0.12);context.stroke();star(context,size*0.24,-size*0.24,size*0.22,color,5);
+  } else if (type === 'potion') {
+    context.beginPath();context.moveTo(-size*0.1,-size*0.42);context.lineTo(size*0.1,-size*0.42);context.lineTo(size*0.1,-size*0.16);context.quadraticCurveTo(size*0.4,size*0.05,size*0.28,size*0.36);context.quadraticCurveTo(0,size*0.5,-size*0.28,size*0.36);context.quadraticCurveTo(-size*0.4,size*0.05,-size*0.1,-size*0.16);context.closePath();context.fill();
+  } else if (type === 'key') {
+    context.beginPath();context.arc(-size*0.2,-size*0.16,size*0.2,0,Math.PI*2);context.stroke();context.beginPath();context.moveTo(-size*0.06,0);context.lineTo(size*0.36,size*0.4);context.moveTo(size*0.2,size*0.24);context.lineTo(size*0.3,size*0.14);context.stroke();
+  } else if (type === 'bulb') {
+    context.beginPath();context.arc(0,-size*0.12,size*0.28,0,Math.PI*2);context.fill();context.fillRect(-size*0.12,size*0.12,size*0.24,size*0.26);
+  } else if (type === 'candle') {
+    context.fillRect(-size*0.14,-size*0.12,size*0.28,size*0.56);context.beginPath();context.ellipse(0,-size*0.3,size*0.09,size*0.16,0,0,Math.PI*2);context.fill();
+  } else if (type === 'teddy') {
+    for(const [x,y,r] of [[-0.24,-0.28,0.14],[0.24,-0.28,0.14],[0,-0.08,0.3],[0,0.28,0.24]]){context.beginPath();context.arc(x*size,y*size,size*r,0,Math.PI*2);context.fill();}context.fillStyle='#241b38';for(const x of [-0.1,0.1]){context.beginPath();context.arc(x*size,-size*0.12,size*0.035,0,Math.PI*2);context.fill();}
+  } else if (type === 'bow') {
+    context.beginPath();context.ellipse(-size*0.22,0,size*0.22,size*0.16,-0.3,0,Math.PI*2);context.ellipse(size*0.22,0,size*0.22,size*0.16,0.3,0,Math.PI*2);context.fill();context.beginPath();context.arc(0,0,size*0.09,0,Math.PI*2);context.fill();
+  } else if (type === 'confetti') {
+    for(let i=0;i<12;i++){const a=i*2.4,r=size*(0.15+(i%4)*0.1);context.save();context.translate(Math.cos(a)*r,Math.sin(a)*r);context.rotate(a);context.fillRect(-size*0.04,-size*0.02,size*0.08,size*0.04);context.restore();}
+  } else if (type === 'firework') {
+    for(let i=0;i<12;i++){const a=i*Math.PI/6;context.beginPath();context.moveTo(Math.cos(a)*size*0.14,Math.sin(a)*size*0.14);context.lineTo(Math.cos(a)*size*0.46,Math.sin(a)*size*0.46);context.stroke();}
+  } else if (type === 'partyhat') {
+    context.beginPath();context.moveTo(0,-size*0.46);context.lineTo(size*0.32,size*0.36);context.lineTo(-size*0.32,size*0.36);context.closePath();context.fill();context.fillStyle='#ffffffaa';context.beginPath();context.arc(0,-size*0.46,size*0.08,0,Math.PI*2);context.fill();
+  } else if (type === 'crescent') {
+    context.beginPath();context.arc(-size*0.1,0,size*0.36,Math.PI*0.25,Math.PI*1.75);context.quadraticCurveTo(-size*0.2,0,size*0.16,-size*0.25);context.fill();star(context,size*0.28,-size*0.22,size*0.12,color,5);
   } else if (type === 'music') {
     context.beginPath(); context.moveTo(-size * 0.2, size * 0.25); context.lineTo(-size * 0.2, -size * 0.35); context.lineTo(size * 0.3, -size * 0.45); context.lineTo(size * 0.3, size * 0.15); context.stroke();
     context.beginPath(); context.ellipse(-size * 0.3, size * 0.28, size * 0.14, size * 0.1, -0.3, 0, Math.PI * 2); context.fill();
@@ -803,7 +1005,7 @@ export function renderImage(source, state, options = {}) {
   const filterContext = filtered.getContext('2d');
   filterContext.filter = `brightness(${values.brightness}%) contrast(${values.contrast}%) saturate(${values.saturation}%) hue-rotate(${values.hue}deg) sepia(${values.sepia}%) grayscale(${values.grayscale}%) blur(${values.blur * photo.width / 700}px)`;
   filterContext.drawImage(photo, 0, 0);
-  photo = colorPass(filtered, values);
+  photo = sharpenPass(colorPass(filtered, values), values.sharpness);
   applyEffects(photo, values);
   const bounds = drawObjects(photo, state, options.selectedId, options.interactive);
   let canvas = addFrame(photo, state.frame);

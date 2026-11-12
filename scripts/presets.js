@@ -139,9 +139,9 @@ export const presets = [
   ...extra
 ];
 
-export const neutral = { brightness: 100, contrast: 100, saturation: 100, warmth: 0, tint: 0, hue: 0, sepia: 0, grayscale: 0, fade: 0, vignette: 0, grain: 0, glow: 0, scanlines: 0, chromatic: 0, dust: 0, leak: 0, sparkle: 0, blur: 0, pixelate: 0, posterize: 0, halftone: 0, duotone: 0, invert: 0, solarize: 0, threshold: 0, radialBlur: 0, motionBlur: 0, tiltShift: 0, fog: 0, bokeh: 0, rain: 0, snow: 0, scratches: 0, glitch: 0 };
-export const adjustmentKeys = ['brightness', 'contrast', 'saturation', 'warmth', 'tint', 'hue', 'fade', 'blur'];
-export const effectKeys = ['grain', 'vignette', 'glow', 'scanlines', 'chromatic', 'dust', 'leak', 'sparkle', 'pixelate', 'posterize', 'halftone', 'duotone', 'invert', 'solarize', 'threshold', 'radialBlur', 'motionBlur', 'tiltShift', 'fog', 'bokeh', 'rain', 'snow', 'scratches', 'glitch'];
+export const neutral = { brightness: 100, contrast: 100, saturation: 100, warmth: 0, tint: 0, hue: 0, sepia: 0, grayscale: 0, fade: 0, vignette: 0, grain: 0, glow: 0, scanlines: 0, chromatic: 0, dust: 0, leak: 0, sparkle: 0, blur: 0, pixelate: 0, posterize: 0, halftone: 0, duotone: 0, invert: 0, solarize: 0, threshold: 0, radialBlur: 0, motionBlur: 0, tiltShift: 0, fog: 0, bokeh: 0, rain: 0, snow: 0, scratches: 0, glitch: 0, exposure: 0, highlights: 0, shadows: 0, whites: 0, blacks: 0, vibrance: 0, clarity: 0, sharpness: 0, bloom: 0, lightRays: 0, starburst: 0, prism: 0, colorNoise: 0, dither: 0, emboss: 0, edges: 0, mirror: 0, kaleidoscope: 0, fisheye: 0, swirl: 0, doubleExposure: 0, tracking: 0, colorDodge: 0, bleach: 0 };
+export const adjustmentKeys = ['brightness', 'exposure', 'contrast', 'highlights', 'shadows', 'whites', 'blacks', 'clarity', 'saturation', 'vibrance', 'warmth', 'tint', 'hue', 'sepia', 'grayscale', 'fade', 'sharpness', 'blur'];
+export const effectKeys = ['grain', 'vignette', 'glow', 'scanlines', 'chromatic', 'dust', 'leak', 'sparkle', 'pixelate', 'posterize', 'halftone', 'duotone', 'invert', 'solarize', 'threshold', 'radialBlur', 'motionBlur', 'tiltShift', 'fog', 'bokeh', 'rain', 'snow', 'scratches', 'glitch', 'bloom', 'lightRays', 'starburst', 'prism', 'colorNoise', 'dither', 'emboss', 'edges', 'mirror', 'kaleidoscope', 'fisheye', 'swirl', 'doubleExposure', 'tracking', 'colorDodge', 'bleach'];
 export const getPreset = id => presets.find(preset => preset.id === id);
 export function resolveValues(state) {
   const preset = getPreset(state.preset);

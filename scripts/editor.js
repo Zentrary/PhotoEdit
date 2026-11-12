@@ -1,5 +1,5 @@
 import { categories, presets, getPreset, neutral, adjustmentKeys, effectKeys } from './presets.js';
-import { initialState, clone, clamp, LIMITS, frameTypes, stickerTypes, emojiTypes, decodeFile, geometrySize, outputSize, paintPreview, renderImage, presetState, drawSticker, validateResize, exportBlob } from './engine.js';
+import { initialState, clone, clamp, LIMITS, frameTypes, stickerTypes, decodeFile, geometrySize, outputSize, paintPreview, renderImage, presetState, drawSticker, validateResize, exportBlob } from './engine.js';
 import { fontFamilies, loadFont } from './fonts.js';
 import { initAccessibility, openDialog, closeDialog, setMotionOverride } from './ui.js';
 
@@ -18,10 +18,10 @@ const exportDialog = $('#export-dialog');
 const toolInfo = {
   presets: ['FIND YOUR MOOD', 'สไตล์รูป'], adjust: ['COLOR & LIGHT', 'ปรับแสงและสี'], crop: ['FRAME YOUR MOMENT', 'ครอปและจัดแนว'], resize: ['THE PERFECT FIT', 'เปลี่ยนขนาดรูป'], effects: ['A LITTLE EXTRA', 'เอฟเฟกต์'], frame: ['FINISHING TOUCH', 'กรอบรูป'], text: ['SAY IT YOUR WAY', 'ข้อความ'], stickers: ['MAKE IT PLAYFUL', 'สติ๊กเกอร์'], draw: ['LEAVE YOUR MARK', 'วาดรูป'], looks: ['MADE BY YOU', 'สไตล์ของฉัน']
 };
-const adjustmentLabels = { brightness: 'ความสว่าง', contrast: 'คอนทราสต์', saturation: 'ความอิ่มสี', warmth: 'อุ่น – เย็น', tint: 'เขียว – ม่วง', hue: 'เปลี่ยนเฉดสี', fade: 'เฟด / สีจาง', blur: 'ความเบลอ' };
-const effectLabels = { grain: 'เกรนฟิล์ม', vignette: 'ขอบมืด', glow: 'แสงฟุ้ง', scanlines: 'เส้นสแกน VHS', chromatic: 'สีเหลื่อม', dust: 'ฝุ่นละออง', leak: 'แสงรั่ว', sparkle: 'ละอองดาว', pixelate: 'พิกเซลแตก', posterize: 'ลดระดับสี', halftone: 'จุดหนังสือพิมพ์', duotone: 'ดูโอโทน', invert: 'กลับสี', solarize: 'โซลาไรซ์', threshold: 'ขาวดำสองค่า', radialBlur: 'เบลอพุ่งกลาง', motionBlur: 'เบลอเคลื่อนไหว', tiltShift: 'เบลอบนล่าง', fog: 'หมอก', bokeh: 'โบเก้', rain: 'ฝน', snow: 'หิมะ', scratches: 'รอยขีดฟิล์ม', glitch: 'ภาพกระตุก' };
-const effectGroups = [['ฟิล์มและพื้นผิว', ['grain', 'dust', 'scratches', 'scanlines', 'halftone']], ['แสงและสี', ['glow', 'leak', 'vignette', 'chromatic', 'duotone', 'posterize', 'invert', 'solarize', 'threshold']], ['เบลอและเคลื่อนไหว', ['radialBlur', 'motionBlur', 'tiltShift', 'glitch', 'pixelate']], ['บรรยากาศ', ['fog', 'bokeh', 'rain', 'snow', 'sparkle']]];
-const stickerLabels = { star: 'ดาว', heart: 'หัวใจ', moon: 'ดวงจันทร์', planet: 'ดาวเคราะห์', sparkle: 'ประกาย', flower: 'ดอกไม้', bolt: 'สายฟ้า', butterfly: 'ผีเสื้อ', smile: 'ยิ้ม', cherry: 'เชอร์รี', diamond: 'เพชร', music: 'ดนตรี', sun: 'ดวงอาทิตย์', cloud: 'เมฆ', rainbow: 'สายรุ้ง', rocket: 'จรวด', ufo: 'จานบิน', comet: 'ดาวหาง', crown: 'มงกุฎ', camera: 'กล้อง', cassette: 'เทปคาสเซ็ต', floppy: 'ฟลอปปี้ดิสก์', gamepad: 'จอยเกม', gift: 'ของขวัญ', balloon: 'ลูกโป่ง', cake: 'เค้ก', icecream: 'ไอศกรีม', coffee: 'กาแฟ', pizza: 'พิซซ่า', strawberry: 'สตรอว์เบอร์รี', leaf: 'ใบไม้', cactus: 'กระบองเพชร', paw: 'รอยเท้าสัตว์', peace: 'สันติภาพ', fire: 'ไฟ', drop: 'หยดน้ำ', snowflake: 'เกล็ดหิมะ', mountain: 'ภูเขา', wave: 'คลื่น', shell: 'เปลือกหอย' };
+const adjustmentLabels = { brightness: 'ความสว่าง', contrast: 'คอนทราสต์', saturation: 'ความอิ่มสี', warmth: 'อุ่น – เย็น', tint: 'เขียว – ม่วง', hue: 'เปลี่ยนเฉดสี', fade: 'เฟด / สีจาง', blur: 'ความเบลอ', exposure: 'เอกซ์โพเชอร์', highlights: 'ไฮไลต์', shadows: 'เงา', whites: 'ขาวจัด', blacks: 'ดำจัด', vibrance: 'สีสดอัจฉริยะ', clarity: 'ความเคลียร์', sharpness: 'ความคมชัด' };
+const effectLabels = { grain: 'เกรนฟิล์ม', vignette: 'ขอบมืด', glow: 'แสงฟุ้ง', scanlines: 'เส้นสแกน VHS', chromatic: 'สีเหลื่อม', dust: 'ฝุ่นละออง', leak: 'แสงรั่ว', sparkle: 'ละอองดาว', pixelate: 'พิกเซลแตก', posterize: 'ลดระดับสี', halftone: 'จุดหนังสือพิมพ์', duotone: 'ดูโอโทน', invert: 'กลับสี', solarize: 'โซลาไรซ์', threshold: 'ขาวดำสองค่า', radialBlur: 'เบลอพุ่งกลาง', motionBlur: 'เบลอเคลื่อนไหว', tiltShift: 'เบลอบนล่าง', fog: 'หมอก', bokeh: 'โบเก้', rain: 'ฝน', snow: 'หิมะ', scratches: 'รอยขีดฟิล์ม', glitch: 'ภาพกระตุก', bloom: 'แสงบลูม', lightRays: 'ลำแสง', starburst: 'แสงกระจาย', prism: 'ปริซึม', colorNoise: 'นอยส์สี', dither: 'ดิทเทอร์', emboss: 'ภาพนูน', edges: 'เส้นขอบ', mirror: 'กระจกเงา', kaleidoscope: 'คาไลโดสโคป', fisheye: 'เลนส์ตาปลา', swirl: 'วนก้นหอย', doubleExposure: 'ซ้อนภาพ', tracking: 'แทร็กกิ้ง VHS', colorDodge: 'สีสว่างจัด', bleach: 'ฟอกสีฟิล์ม' };
+const effectGroups = [['ฟิล์มและพื้นผิว', ['grain', 'dust', 'scratches', 'scanlines', 'halftone', 'colorNoise', 'dither', 'tracking', 'bleach']], ['แสงและสี', ['glow', 'bloom', 'leak', 'lightRays', 'starburst', 'vignette', 'chromatic', 'prism', 'duotone', 'posterize', 'invert', 'solarize', 'threshold', 'colorDodge']], ['เบลอและเคลื่อนไหว', ['radialBlur', 'motionBlur', 'tiltShift', 'glitch', 'pixelate']], ['บรรยากาศ', ['fog', 'bokeh', 'rain', 'snow', 'sparkle']], ['รูปทรงและกราฟิก', ['emboss', 'edges', 'mirror', 'kaleidoscope', 'fisheye', 'swirl', 'doubleExposure']]];
+const stickerLabels = { star: 'ดาว', heart: 'หัวใจ', moon: 'ดวงจันทร์', planet: 'ดาวเคราะห์', sparkle: 'ประกาย', flower: 'ดอกไม้', bolt: 'สายฟ้า', butterfly: 'ผีเสื้อ', smile: 'ยิ้ม', cherry: 'เชอร์รี', diamond: 'เพชร', music: 'ดนตรี', sun: 'ดวงอาทิตย์', cloud: 'เมฆ', rainbow: 'สายรุ้ง', rocket: 'จรวด', ufo: 'จานบิน', comet: 'ดาวหาง', crown: 'มงกุฎ', camera: 'กล้อง', cassette: 'เทปคาสเซ็ต', floppy: 'ฟลอปปี้ดิสก์', gamepad: 'จอยเกม', gift: 'ของขวัญ', balloon: 'ลูกโป่ง', cake: 'เค้ก', icecream: 'ไอศกรีม', coffee: 'กาแฟ', pizza: 'พิซซ่า', strawberry: 'สตรอว์เบอร์รี', leaf: 'ใบไม้', cactus: 'กระบองเพชร', paw: 'รอยเท้าสัตว์', peace: 'สันติภาพ', fire: 'ไฟ', drop: 'หยดน้ำ', snowflake: 'เกล็ดหิมะ', mountain: 'ภูเขา', wave: 'คลื่น', shell: 'เปลือกหอย' , clover: 'โคลเวอร์', mushroom: 'เห็ด', ghost: 'ผีน่ารัก', alien: 'เอเลียน', eyes: 'ดวงตา', lips: 'ริมฝีปาก', speech: 'กล่องคำพูด', umbrella: 'ร่ม', palm: 'ต้นปาล์ม', airplane: 'เครื่องบิน', car: 'รถยนต์', bicycle: 'จักรยาน', sailboat: 'เรือใบ', anchor: 'สมอเรือ', telescope: 'กล้องโทรทรรศน์', ring: 'แหวน', lipstick: 'ลิปสติก', palette: 'จานสี', book: 'หนังสือ', letter: 'จดหมาย', phone: 'โทรศัพท์', headphones: 'หูฟัง', guitar: 'กีตาร์', dice: 'ลูกเต๋า', trophy: 'ถ้วยรางวัล', medal: 'เหรียญรางวัล', soccer: 'ฟุตบอล', basketball: 'บาสเกตบอล', dumbbell: 'ดัมเบล', wand: 'คฑาเวทมนตร์', potion: 'ขวดยาวิเศษ', key: 'กุญแจ', bulb: 'หลอดไฟ', candle: 'เทียน', teddy: 'หมีเทดดี้', bow: 'โบว์', confetti: 'คอนเฟตติ', firework: 'พลุ', partyhat: 'หมวกปาร์ตี้', crescent: 'จันทร์เสี้ยวคู่'};
 const stickerLabel = type => type.startsWith('emoji:') ? type.slice(6) : stickerLabels[type] || type;
 const colors = ['#ffffff', '#1b1426', '#c4a0f5', '#f1acd0', '#a5d8e6', '#a4d5a2', '#f4d38d', '#ef8d79'];
 let source = null;
@@ -58,6 +58,20 @@ let thumbnailSource = null;
 let thumbnailVersion = 0;
 let stickerTab = 'drawn';
 let fontSearch = '';
+let emojiData = null;
+let emojiDataPromise = null;
+let emojiSearch = '';
+let emojiGroup = 'all';
+let emojiTone = 'all';
+let emojiFiltered = [];
+let emojiRendered = 0;
+let emojiObserver = null;
+let emojiVersion = 0;
+let panelTool = null;
+const emojiPageSize = 120;
+const thaiEmojiKeywords = {
+  'ยิ้ม': 'smile happy grin laugh', 'หัวเราะ': 'laugh laugh joy', 'ร้องไห้': 'cry tear sad', 'เศร้า': 'sad cry', 'รัก': 'love heart kiss', 'หัวใจ': 'heart love', 'มือ': 'hand', 'คน': 'person people man woman', 'ผู้หญิง': 'woman girl', 'ผู้ชาย': 'man boy', 'เด็ก': 'child baby', 'ครอบครัว': 'family', 'แมว': 'cat', 'หมา': 'dog dog', 'สัตว์': 'animal', 'ดอกไม้': 'flower blossom', 'ธรรมชาติ': 'nature plant tree', 'อาหาร': 'food', 'ผลไม้': 'fruit', 'กาแฟ': 'coffee', 'เค้ก': 'cake birthday', 'ท่องเที่ยว': 'travel place', 'รถ': 'car vehicle', 'กีฬา': 'sport ball', 'ดนตรี': 'music note', 'ดาว': 'star', 'ดวงจันทร์': 'moon', 'โลก': 'earth globe world', 'ไฟ': 'fire', 'น้ำ': 'water drop', 'ของขวัญ': 'gift present', 'เงิน': 'money coin dollar', ' телефон': 'phone telephone', 'โทรศัพท์': 'phone telephone', 'คอมพิวเตอร์': 'computer laptop', 'ธง': 'flag', 'ไทย': 'thailand thai', 'ญี่ปุ่น': 'japan japanese', 'เกาหลี': 'korea korean', 'อเมริกา': 'america usa'
+};
 let thumbnailObserver;
 let thumbnailQueue = [];
 let thumbnailWorking = false;
@@ -189,7 +203,16 @@ function emptyInspector() {
   $('#panel-open').onclick = () => fileInput.click();
   $('#panel-demo').onclick = () => loadDemo();
 }
-function renderPanel() {
+function panelControls(content, className = '') { return `<section class="panel-controls ${className}">${content}</section>`; }
+function renderPanel({ resetScroll = false } = {}) {
+  const active = document.activeElement;
+  const focusId = inspector.contains(active) && active.id ? active.id : null;
+  const selection = focusId && typeof active.selectionStart === 'number' ? [active.selectionStart, active.selectionEnd] : null;
+  const openGroups = [...inspector.querySelectorAll('.effect-group[open]')].map(element => element.dataset.group);
+  const scrollTop = resetScroll || panelTool !== tool ? 0 : inspector.scrollTop;
+  panelTool = tool;
+  emojiObserver?.disconnect();
+  emojiVersion++;
   thumbnailVersion++;
   $('#inspector-kicker').textContent = toolInfo[tool][0];
   $('#inspector-title').textContent = toolInfo[tool][1];
@@ -197,6 +220,12 @@ function renderPanel() {
   const builders = { presets: presetPanel, adjust: adjustPanel, crop: cropPanel, resize: resizePanel, effects: effectsPanel, frame: framePanel, text: textPanel, stickers: stickerPanel, draw: drawPanel, looks: looksPanel };
   builders[tool]();
   bindRanges();
+  if (tool === 'effects' && openGroups.length) inspector.querySelectorAll('.effect-group').forEach(element => { element.open = openGroups.includes(element.dataset.group); });
+  inspector.scrollTop = scrollTop;
+  if (focusId && !resetScroll) {
+    const next = document.getElementById(focusId);
+    if (next && inspector.contains(next)) { next.focus({ preventScroll: true }); if (selection && next.setSelectionRange) next.setSelectionRange(...selection); }
+  }
   inspector.classList.remove('panel-enter');
   void inspector.offsetWidth;
   inspector.classList.add('panel-enter');
@@ -210,11 +239,11 @@ function setTool(next) {
   cropDraft = next === 'crop' && source ? clone(state.crop) : null;
   $$('.tool-button').forEach(button => { const active = button.dataset.tool === next; button.classList.toggle('active', active); button.setAttribute('aria-pressed', String(active)); });
   $('#workspace-hint').textContent = { presets: 'เลือกสไตล์ที่ใช่ แล้วปรับความแรงให้เป็นคุณ', adjust: 'ทุกการปรับแก้คำนวณจากรูปต้นฉบับเสมอ', crop: 'ลากกรอบหรือมุมทั้งสี่ แล้วกดใช้การครอป', resize: 'กำหนดขนาดเป็นพิกเซลหรือเปอร์เซ็นต์', effects: 'เติมบรรยากาศทีละนิด รูปก็มีเรื่องเล่า', frame: 'เลือกกรอบที่เข้ากับภาพของคุณ', text: 'เพิ่มข้อความ แล้วลากวางบนรูปได้เลย', stickers: 'เลือกสติ๊กเกอร์ แล้วลากไปวางที่ถูกใจ', draw: 'วาดด้วยนิ้วหรือเมาส์ ยางลบจะลบเฉพาะเส้นวาด', looks: 'สไตล์ที่บันทึกอยู่ในรอบใช้งานนี้เท่านั้น' }[next];
-  renderPanel(); scheduleRender();
+  renderPanel({ resetScroll: true }); scheduleRender();
   if (innerWidth <= 700) $(`.tool-button[data-tool="${next}"]`).scrollIntoView({ behavior: document.body.classList.contains('reduce-motion') ? 'auto' : 'smooth', block: 'nearest', inline: 'center' });
 }
 function presetPanel() {
-  inspector.innerHTML = `<p class="inspector-description">200 สไตล์ 8 บรรยากาศ ค้นหาโทนสีที่ใช่สำหรับภาพของคุณ</p><div class="search-field"><input id="preset-search" type="search" placeholder="ค้นหากลิ่นอายที่คุณชอบ…" aria-label="ค้นหาสไตล์รูป" value="${escapeHTML(search)}"></div><div class="category-chips" id="category-chips"></div><button class="preset-original ${!state.preset ? 'active' : ''}" id="original-preset">${icon('image')} Original · ไม่ใช้สไตล์</button><div class="preset-result-count" id="preset-result-count" role="status"></div><div class="preset-grid" id="preset-grid"></div><div class="panel-section"><div id="preset-description" class="preset-description">${state.preset ? escapeHTML(getPreset(state.preset)?.description || '') : 'เริ่มจากสีต้นฉบับ แล้วปรับแสงและสีด้วยตัวคุณเอง'}</div><div style="margin-top:18px">${rangeHTML('ความแรงของสไตล์', 'presetStrength', state.presetStrength, 0, 100, 'preset', 1, '%')}</div></div>`;
+  inspector.innerHTML = `${panelControls(`<div class="control-heading"><span>ความแรงของสไตล์</span><strong id="selected-preset-name">${state.preset ? escapeHTML(getPreset(state.preset)?.name || '') : 'Original'}</strong></div>${rangeHTML('ปรับได้ทันที ไม่ต้องเลื่อนหา', 'presetStrength', state.presetStrength, 0, 100, 'preset', 1, '%')}<p class="control-note" id="preset-description">${state.preset ? escapeHTML(getPreset(state.preset)?.description || '') : 'เลือกสไตล์ด้านล่าง แล้วปรับความแรงตรงนี้ได้เลย'}</p>`, 'preset-controls')}<p class="inspector-description">200 สไตล์ 8 บรรยากาศ ค้นหาโทนสีที่ใช่สำหรับภาพของคุณ</p><div class="search-field"><input id="preset-search" type="search" placeholder="ค้นหากลิ่นอายที่คุณชอบ…" aria-label="ค้นหาสไตล์รูป" value="${escapeHTML(search)}"></div><div class="category-chips" id="category-chips"></div><button class="preset-original ${!state.preset ? 'active' : ''}" id="original-preset">${icon('image')} Original · ไม่ใช้สไตล์</button><div class="preset-result-count" id="preset-result-count" role="status"></div><div class="preset-grid" id="preset-grid"></div>`;
   const chipContainer = $('#category-chips');
   for (const item of [...categories, { id: 'favorites', name: '♥ ที่ชอบ' }]) {
     const button = document.createElement('button'); button.className = `category-chip ${category === item.id ? 'active' : ''}`; button.textContent = item.name; button.setAttribute('aria-pressed', String(category === item.id));
@@ -254,6 +283,7 @@ function renderPresetGrid() {
       inspector.querySelectorAll('.preset-card').forEach(card => { card.classList.toggle('active', card === button); card.setAttribute('aria-pressed', String(card === button)); });
       $('#original-preset').classList.remove('active');
       $('#preset-description').textContent = preset.description;
+      $('#selected-preset-name').textContent = preset.name;
     };
     const favorite = document.createElement('button'); favorite.className = `favorite-toggle ${favorites.has(preset.id) ? 'active' : ''}`; favorite.innerHTML = icon('heart'); favorite.setAttribute('aria-label', `ชื่นชอบ ${preset.name}`); favorite.setAttribute('aria-pressed', String(favorites.has(preset.id)));
     favorite.onclick = () => { if (favorites.has(preset.id)) favorites.delete(preset.id); else favorites.add(preset.id); if (category === 'favorites') renderPresetGrid(); else { favorite.classList.toggle('active', favorites.has(preset.id)); favorite.setAttribute('aria-pressed', String(favorites.has(preset.id))); } };
@@ -299,14 +329,15 @@ async function pumpThumbnails() {
   finally { thumbnailWorking = false; }
 }
 function adjustPanel() {
-  inspector.innerHTML = `<p class="inspector-description">ปรับทีละนิดจนใช่ ทุกค่าทำงานร่วมกับสไตล์ที่เลือกได้</p>${adjustmentKeys.map(key => { const base = ['brightness', 'contrast', 'saturation'].includes(key); return rangeHTML(adjustmentLabels[key], key, state.adjustments[key], base ? 0 : key === 'hue' ? -180 : key === 'blur' ? 0 : -100, base ? 200 : key === 'hue' ? 180 : key === 'blur' ? 20 : 100, 'adjustments', key === 'blur' ? 0.1 : 1); }).join('')}<p class="field-note">ค่าปรับสีเป็นค่าเพิ่มเติมจากพรีเซ็ต กดรีเซ็ตด้านบนเพื่อคืนค่าเฉพาะเครื่องมือนี้</p>`;
+  const groups = [['แสงและเงา', ['brightness', 'exposure', 'contrast', 'highlights', 'shadows', 'whites', 'blacks', 'clarity']], ['สีและโทน', ['saturation', 'vibrance', 'warmth', 'tint', 'hue', 'sepia', 'grayscale', 'fade']], ['รายละเอียด', ['sharpness', 'blur']]];
+  inspector.innerHTML = `<p class="inspector-description">${adjustmentKeys.length} ตัวปรับแสงและสี ทำงานร่วมกับสไตล์ที่เลือกได้</p>${groups.map(([title, keys], index) => `<details class="effect-group" data-group="adjust-${index}" ${index === 0 ? 'open' : ''}><summary>${title}<span>${keys.length}</span></summary><div class="effect-group-body">${keys.map(key => { const base = ['brightness', 'contrast', 'saturation'].includes(key); const positive = ['sepia', 'grayscale', 'fade', 'sharpness', 'blur'].includes(key); return rangeHTML(adjustmentLabels[key], key, state.adjustments[key], base ? 0 : positive ? 0 : key === 'hue' ? -180 : -100, base ? 200 : key === 'hue' ? 180 : key === 'blur' ? 20 : 100, 'adjustments', key === 'blur' ? 0.1 : 1); }).join('')}</div></details>`).join('')}<p class="field-note">ค่าปรับสีเป็นค่าเพิ่มเติมจากพรีเซ็ต กดรีเซ็ตด้านบนเพื่อคืนค่าเฉพาะเครื่องมือนี้</p>`;
 }
 function effectsPanel() {
-  inspector.innerHTML = `<p class="inspector-description">24 เอฟเฟกต์ ปรับผสมได้อิสระจากพรีเซ็ต ค่า 0 คือปิดเอฟเฟกต์นั้น</p>${effectGroups.map(([title, keys], index) => `<details class="effect-group" ${index === 0 ? 'open' : ''}><summary>${title}<span>${keys.length}</span></summary><div class="effect-group-body">${keys.map(key => rangeHTML(effectLabels[key], key, state.effects[key], 0, 100, 'effects')).join('')}</div></details>`).join('')}<p class="field-note">เอฟเฟกต์หนักหลายตัวพร้อมกันอาจทำให้เครื่องช้าลงเล็กน้อยขณะส่งออกความละเอียดสูง</p>`;
+  inspector.innerHTML = `<p class="inspector-description">${effectKeys.length} เอฟเฟกต์ ปรับผสมได้อิสระจากพรีเซ็ต ค่า 0 คือปิดเอฟเฟกต์นั้น</p>${effectGroups.map(([title, keys], index) => `<details class="effect-group" data-group="${index}" ${index === 0 ? 'open' : ''}><summary>${title}<span>${keys.length}</span></summary><div class="effect-group-body">${keys.map(key => rangeHTML(effectLabels[key], key, state.effects[key], 0, 100, 'effects')).join('')}</div></details>`).join('')}<p class="field-note">เอฟเฟกต์หนักหลายตัวพร้อมกันอาจทำให้เครื่องช้าลงเล็กน้อยขณะส่งออกความละเอียดสูง</p>`;
 }
 function cropPanel() {
   const ratios = [['free', 'อิสระ', ''], ['original', 'ต้นฉบับ', ''], ['1:1', '1:1', 'square'], ['4:5', '4:5', 'portrait'], ['3:4', '3:4', 'portrait'], ['9:16', '9:16', 'story'], ['16:9', '16:9', 'wide'], ['3:2', '3:2', 'wide']];
-  inspector.innerHTML = `<p class="inspector-description">ลากกรอบบนรูปเพื่อเลือกส่วนที่ใช่ สัดส่วนคำนวณตามระนาบหลังหมุนและจัดแนว</p><div class="button-grid">${ratios.map(([id, name, shape]) => `<button class="option-button ${cropRatio === id ? 'active' : ''}" data-ratio="${id}" aria-pressed="${cropRatio === id}"><span class="ratio-symbol ${shape}"></span>${name}</button>`).join('')}</div><div class="field-row" style="margin-top:13px"><label>สัดส่วนกว้าง<input id="crop-ratio-w" type="number" min="1" max="100" value="4"></label><label>สัดส่วนสูง<input id="crop-ratio-h" type="number" min="1" max="100" value="5"></label></div><button class="button button-outline full-width" id="custom-ratio">ใช้สัดส่วนที่กำหนด</button><div class="panel-section"><div class="panel-title">หมุนและกลับด้าน</div><div class="button-grid"><button class="option-button" id="rotate-left">${icon('undo')} ซ้าย 90°</button><button class="option-button" id="rotate-right">${icon('redo')} ขวา 90°</button><button class="option-button ${state.flipX ? 'active' : ''}" id="flip-x">${icon('flip')} กลับซ้าย–ขวา</button><button class="option-button ${state.flipY ? 'active' : ''}" id="flip-y">${icon('flip')} กลับบน–ล่าง</button></div><div style="margin-top:18px">${rangeHTML('ปรับมุมเอียง', 'straighten', state.straighten, -45, 45, 'crop', 0.5, '°')}</div><p class="field-note">จัดแนวจะครอปขอบบางส่วนอัตโนมัติเพื่อไม่ให้มีพื้นที่ว่าง</p></div><div class="panel-actions"><button class="button button-outline" id="cancel-crop">ยกเลิก</button><button class="button button-primary" id="apply-crop">${icon('check')} ใช้การครอป</button></div>`;
+  inspector.innerHTML = `<p class="inspector-description">ลากกรอบบนรูปเพื่อเลือกส่วนที่ใช่ สัดส่วนคำนวณตามระนาบหลังหมุนและจัดแนว</p>${panelControls(`${rangeHTML('ปรับมุมเอียง', 'straighten', state.straighten, -45, 45, 'crop', 0.5, '°')}<div class="panel-actions"><button class="button button-outline button-small" id="cancel-crop">ยกเลิกครอป</button><button class="button button-primary button-small" id="apply-crop">${icon('check')} ใช้การครอป</button></div><p class="control-note">จัดแนวจะครอปขอบบางส่วนอัตโนมัติเพื่อไม่ให้มีพื้นที่ว่าง</p>`)}<div class="button-grid">${ratios.map(([id, name, shape]) => `<button class="option-button ${cropRatio === id ? 'active' : ''}" data-ratio="${id}" aria-pressed="${cropRatio === id}"><span class="ratio-symbol ${shape}"></span>${name}</button>`).join('')}</div><div class="field-row" style="margin-top:13px"><label>สัดส่วนกว้าง<input id="crop-ratio-w" type="number" min="1" max="100" value="4"></label><label>สัดส่วนสูง<input id="crop-ratio-h" type="number" min="1" max="100" value="5"></label></div><button class="button button-outline full-width" id="custom-ratio">ใช้สัดส่วนที่กำหนด</button><div class="panel-section"><div class="panel-title">หมุนและกลับด้าน</div><div class="button-grid"><button class="option-button" id="rotate-left">${icon('undo')} ซ้าย 90°</button><button class="option-button" id="rotate-right">${icon('redo')} ขวา 90°</button><button class="option-button ${state.flipX ? 'active' : ''}" id="flip-x">${icon('flip')} กลับซ้าย–ขวา</button><button class="option-button ${state.flipY ? 'active' : ''}" id="flip-y">${icon('flip')} กลับบน–ล่าง</button></div></div>`;
   inspector.querySelectorAll('[data-ratio]').forEach(button => button.onclick = () => { setCropRatio(button.dataset.ratio); renderPanel(); });
   $('#custom-ratio').onclick = () => { const width = Number($('#crop-ratio-w').value), height = Number($('#crop-ratio-h').value); if (!(width > 0 && height > 0 && width <= 100 && height <= 100)) return notify('ใส่สัดส่วนตั้งแต่ 1 ถึง 100 ทั้งสองช่อง', true); setCropRatio(width / height); inspector.querySelectorAll('[data-ratio]').forEach(button => button.classList.remove('active')); notify(`ใช้สัดส่วน ${width}:${height} แล้ว`); };
   $('#rotate-left').onclick = () => mutate(() => { const crop = state.crop; state.crop = { x: crop.y, y: 1 - crop.x - crop.w, w: crop.h, h: crop.w }; cropDraft = clone(state.crop); state.rotation = (state.rotation + 270) % 360; }, false);
@@ -391,7 +422,7 @@ function resizePanel() {
   $('#original-size').onclick = () => mutate(() => { state.resize = null; });
 }
 function framePanel() {
-  inspector.innerHTML = `<p class="inspector-description">32 กรอบ เลือกขอบที่เข้ากับภาพของคุณ ปรับความหนาและสีได้บางกรอบ</p><div class="button-grid two frame-grid">${frameTypes.map(frame => `<button class="option-button ${state.frame.type === frame.id ? 'active' : ''}" data-frame="${frame.id}" aria-pressed="${state.frame.type === frame.id}"><span class="frame-preview frame-${frame.id}"><span></span></span>${frame.name}</button>`).join('')}</div><div class="panel-section" id="frame-options" ${state.frame.type === 'none' ? 'hidden' : ''}>${rangeHTML('ความหนาของกรอบ', 'width', state.frame.width, 1, 15, 'frame', 0.5, '%')}<label class="color-field">สีกรอบ<input id="frame-color" type="color" value="${state.frame.color}"></label><p class="field-note">กรอบสีสำเร็จรูปและกรอบลวดลายใช้สีประจำแบบ ส่วนมุมมนจะคงพื้นหลังโปร่งใส</p></div>`;
+  inspector.innerHTML = `${panelControls(`<div id="frame-options" ${state.frame.type === 'none' ? 'hidden' : ''}>${rangeHTML('ความหนาของกรอบ', 'width', state.frame.width, 1, 15, 'frame', 0.5, '%')}<label class="color-field">สีกรอบ<input id="frame-color" type="color" value="${state.frame.color}"></label></div><p class="control-note">${state.frame.type === 'none' ? 'เลือกกรอบด้านล่าง แล้วปรับความหนาและสีตรงนี้' : 'ปรับความหนาและสีได้ทันที บางกรอบใช้สีประจำแบบ'}</p>`, 'frame-controls')}<p class="inspector-description">32 กรอบ เลือกขอบที่เข้ากับภาพของคุณ</p><div class="button-grid two frame-grid">${frameTypes.map(frame => `<button class="option-button ${state.frame.type === frame.id ? 'active' : ''}" data-frame="${frame.id}" aria-pressed="${state.frame.type === frame.id}"><span class="frame-preview frame-${frame.id}"><span></span></span><span class="frame-name">${frame.name}</span></button>`).join('')}</div><p class="field-note">กรอบมุมมนคงพื้นหลังโปร่งใส · กรอบลวดลายและสีสำเร็จรูปใช้สีประจำแบบ</p>`;
   inspector.querySelectorAll('[data-frame]').forEach(button => button.onclick = () => mutate(() => { state.frame.type = button.dataset.frame; }));
   $('#frame-color').oninput = event => { state.frame.color = event.target.value; scheduleRender(); };
   $('#frame-color').onchange = () => commit();
@@ -404,10 +435,11 @@ function bindSwatches() {
 function objectList(objects, kind) {
   return objects.length ? `<div class="object-list">${objects.map((object, index) => `<button data-object="${object.id}" class="${selectedId === object.id ? 'active' : ''}">${icon(kind === 'text' ? 'type' : 'sticker')}<span>${escapeHTML(kind === 'text' ? object.text.slice(0, 28) || 'ข้อความว่าง' : stickerLabel(object.type))} ${index + 1}</span></button>`).join('')}</div>` : '';
 }
-function bindObjectList() { inspector.querySelectorAll('[data-object]').forEach(button => button.onclick = () => { selectedId = button.dataset.object; renderPanel(); scheduleRender(); }); }
+function bindObjectList() { inspector.querySelectorAll('[data-object]').forEach(button => button.onclick = () => { selectedId = button.dataset.object; renderPanel({ resetScroll: true }); scheduleRender(); }); }
 function objectControls(object, isText) {
   const isEmoji = !isText && object.type.startsWith('emoji:');
-  return `<div class="panel-section"><div class="panel-title">${isText ? 'ปรับข้อความที่เลือก' : 'ปรับสติ๊กเกอร์ที่เลือก'}</div>${isText ? `<label class="field-label" for="object-text">ข้อความ</label><textarea id="object-text" maxlength="160" rows="2">${escapeHTML(object.text)}</textarea><label class="field-label" for="font-search">ฟอนต์ · ${fontFamilies.length} แบบ</label><div class="search-field"><input id="font-search" type="search" placeholder="ค้นหาฟอนต์…" value="${escapeHTML(fontSearch)}" aria-label="ค้นหาฟอนต์"></div><div class="font-grid" id="font-grid" role="listbox" aria-label="เลือกฟอนต์"></div><label class="checkbox-label" style="margin-top:13px"><input id="object-shadow" type="checkbox" ${object.shadow ? 'checked' : ''}> เงาให้อ่านง่าย</label>` : ''}${isEmoji ? '<p class="field-note">อีโมจิใช้สีมาตรฐานของระบบ เปลี่ยนสีไม่ได้ แต่ย่อ ขยาย และหมุนได้</p>' : `<label class="color-field">สี<input id="object-color" type="color" value="${object.color}"></label>${swatchHTML('object')}`}${rangeHTML('ขนาด', 'size', object.size, isText ? 2 : 3, isText ? 25 : 45, 'object', 0.5, '%')}${rangeHTML('หมุน', 'rotation', object.rotation, -180, 180, 'object', 1, '°')}<div class="panel-actions"><button class="button button-outline" id="duplicate-object">ทำสำเนา</button><button class="button button-outline danger-button" id="delete-object">${icon('trash')} ลบ</button></div><div class="button-grid nudge-grid"><button class="option-button" data-nudge="left" aria-label="เลื่อนซ้าย">←</button><button class="option-button" data-nudge="up" aria-label="เลื่อนขึ้น">↑</button><button class="option-button" data-nudge="down" aria-label="เลื่อนลง">↓</button><button class="option-button" data-nudge="right" aria-label="เลื่อนขวา">→</button></div><p class="field-note">ลากบนรูปเพื่อจัดตำแหน่ง หรือใช้ปุ่มลูกศรเพื่อเลื่อนทีละนิด</p></div>`;
+  const font = fontFamilies.find(item => item.family === object.font);
+  return panelControls(`<div class="control-heading"><span>${isText ? 'ข้อความที่เลือก' : 'สติ๊กเกอร์ที่เลือก'}</span><strong>${escapeHTML(isText ? object.text.slice(0, 18) || 'ข้อความว่าง' : stickerLabel(object.type))}</strong></div>${isText ? `<label class="sr-only" for="object-text">ข้อความ</label><textarea id="object-text" maxlength="160" rows="2">${escapeHTML(object.text)}</textarea><details class="font-picker"><summary>ฟอนต์ · ${escapeHTML(font?.label || object.font)} · ${fontFamilies.length} แบบ</summary><div class="search-field"><input id="font-search" type="search" placeholder="ค้นหาฟอนต์…" value="${escapeHTML(fontSearch)}" aria-label="ค้นหาฟอนต์"></div><div class="font-grid" id="font-grid" role="listbox" aria-label="เลือกฟอนต์"></div></details><label class="checkbox-label"><input id="object-shadow" type="checkbox" ${object.shadow ? 'checked' : ''}> เงาให้อ่านง่าย</label>` : ''}${isEmoji ? '<p class="control-note">อีโมจิสีคมชัดจากฟอนต์ในเครื่อง ย่อ ขยาย และหมุนได้</p>' : `<label class="color-field">สี<input id="object-color" type="color" value="${object.color}"></label>${swatchHTML('object')}`}<div class="compact-ranges">${rangeHTML('ขนาด', 'size', object.size, isText ? 2 : 3, isText ? 25 : 45, 'object', 0.5, '%')}${rangeHTML('หมุน', 'rotation', object.rotation, -180, 180, 'object', 1, '°')}</div><div class="panel-actions"><button class="button button-outline button-small" id="duplicate-object">ทำสำเนา</button><button class="button button-outline button-small danger-button" id="delete-object">${icon('trash')} ลบ</button></div><details class="nudge-picker"><summary>เลื่อนทีละนิด</summary><div class="button-grid nudge-grid"><button class="option-button" data-nudge="left" aria-label="เลื่อนซ้าย">←</button><button class="option-button" data-nudge="up" aria-label="เลื่อนขึ้น">↑</button><button class="option-button" data-nudge="down" aria-label="เลื่อนลง">↓</button><button class="option-button" data-nudge="right" aria-label="เลื่อนขวา">→</button></div></details><p class="control-note">หรือลากบนรูปเพื่อจัดตำแหน่งได้เลย</p>`, 'object-controls');
 }
 function bindObjectControls(isText) {
   const object = selectedObject();
@@ -424,7 +456,7 @@ function bindObjectControls(isText) {
     $('#object-color').onchange = () => commit();
   }
   $('#delete-object').onclick = () => deleteSelected();
-  $('#duplicate-object').onclick = () => mutate(() => { const copy = { ...clone(object), id: uid(), x: clamp(object.x + 0.04, 0, 1), y: clamp(object.y + 0.04, 0, 1) }; (isText ? state.texts : state.stickers).push(copy); selectedId = copy.id; });
+  $('#duplicate-object').onclick = () => { mutate(() => { const copy = { ...clone(object), id: uid(), x: clamp(object.x + 0.04, 0, 1), y: clamp(object.y + 0.04, 0, 1) }; (isText ? state.texts : state.stickers).push(copy); selectedId = copy.id; }, false); renderPanel({ resetScroll: true }); };
   inspector.querySelectorAll('[data-nudge]').forEach(button => button.onclick = () => mutate(() => { const direction = button.dataset.nudge; if (direction === 'left') object.x = clamp(object.x - 0.01, 0, 1); if (direction === 'right') object.x = clamp(object.x + 0.01, 0, 1); if (direction === 'up') object.y = clamp(object.y - 0.01, 0, 1); if (direction === 'down') object.y = clamp(object.y + 0.01, 0, 1); }, false));
   bindSwatches();
 }
@@ -450,6 +482,8 @@ function renderFontGrid(object) {
       try { await loadFont(font.family); }
       catch { notify('โหลดฟอนต์ไม่สำเร็จ ใช้ฟอนต์สำรองแทน', true); }
       mutate(() => { object.font = font.family; }, false);
+      const summary = inspector.querySelector('.font-picker summary');
+      if (summary) summary.textContent = `ฟอนต์ · ${font.label} · ${fontFamilies.length} แบบ`;
       renderFontGrid(object);
     };
     container.append(button);
@@ -458,22 +492,92 @@ function renderFontGrid(object) {
 }
 function textPanel() {
   const object = state.texts.find(item => item.id === selectedId);
-  inspector.innerHTML = `<p class="inspector-description">ใส่คำที่เป็นคุณ ลากวาง หมุน และเลือกสีได้อย่างอิสระ</p><button class="button button-primary full-width" id="add-text">${icon('plus')} เพิ่มข้อความ</button>${objectList(state.texts, 'text')}${object ? objectControls(object, true) : '<div class="object-empty">เพิ่มข้อความใหม่ หรือเลือกข้อความบนรูปเพื่อแก้ไข</div>'}`;
-  $('#add-text').onclick = () => { if (state.texts.length >= 30) return notify('ใส่ข้อความได้สูงสุด 30 รายการต่อภาพ', true); mutate(() => { const object = { id: uid(), text: 'ความเป็นคุณ', x: 0.5, y: 0.5, size: 8, color: '#ffffff', font: 'Noto Sans Thai', weight: 600, rotation: 0, shadow: true }; state.texts.push(object); selectedId = object.id; }); };
+  inspector.innerHTML = `<p class="inspector-description">ใส่คำที่เป็นคุณ ลากวาง หมุน และเลือกสีได้อย่างอิสระ</p><button class="button button-primary full-width" id="add-text">${icon('plus')} เพิ่มข้อความ</button>${object ? objectControls(object, true) : '<div class="object-empty">เพิ่มข้อความใหม่ หรือเลือกข้อความบนรูปเพื่อแก้ไข</div>'}${objectList(state.texts, 'text')}`;
+  $('#add-text').onclick = () => { if (state.texts.length >= 30) return notify('ใส่ข้อความได้สูงสุด 30 รายการต่อภาพ', true); mutate(() => { const object = { id: uid(), text: 'ความเป็นคุณ', x: 0.5, y: 0.5, size: 8, color: '#ffffff', font: 'Noto Sans Thai', weight: 600, rotation: 0, shadow: true }; state.texts.push(object); selectedId = object.id; }, false); renderPanel({ resetScroll: true }); };
   bindObjectList(); bindObjectControls(true);
 }
+function ensureEmojiData() {
+  if (!emojiDataPromise) emojiDataPromise = import('./emoji-data.js').then(module => { emojiData = module; return module; }).catch(error => { emojiDataPromise = null; throw error; });
+  return emojiDataPromise;
+}
+function emojiToneLabel(mask) { return emojiData.emojiTones.filter(tone => tone.bit && mask & tone.bit).map(tone => tone.name).join(' + '); }
 function stickerPanel() {
   const object = state.stickers.find(item => item.id === selectedId);
-  const drawn = stickerTypes.map(type => `<button class="sticker-option" data-sticker="${type}" aria-label="เพิ่ม${stickerLabels[type]}"><canvas width="84" height="84" data-sticker-preview="${type}" aria-hidden="true"></canvas></button>`).join('');
-  const emoji = emojiTypes.map(value => `<button class="sticker-option emoji-option" data-sticker="emoji:${value}" aria-label="เพิ่มอีโมจิ ${value}"><span aria-hidden="true">${value}</span></button>`).join('');
-  inspector.innerHTML = `<p class="inspector-description">${stickerTypes.length} สติ๊กเกอร์วาด และ ${emojiTypes.length} อีโมจิ เลือกแล้วลากไปวางได้เลย</p><div class="segmented-control" role="tablist" aria-label="ชนิดสติ๊กเกอร์"><button role="tab" id="sticker-tab-drawn" data-sticker-tab="drawn" aria-selected="${stickerTab === 'drawn'}" aria-controls="sticker-library">สติ๊กเกอร์</button><button role="tab" id="sticker-tab-emoji" data-sticker-tab="emoji" aria-selected="${stickerTab === 'emoji'}" aria-controls="sticker-library">อีโมจิ</button></div><div class="sticker-grid" id="sticker-library" role="tabpanel" aria-labelledby="sticker-tab-${stickerTab}">${stickerTab === 'drawn' ? drawn : emoji}</div>${objectList(state.stickers, 'sticker')}${object ? objectControls(object, false) : '<div class="object-empty">เลือกสติ๊กเกอร์ด้านบนเพื่อเพิ่มลงบนภาพ</div>'}`;
-  inspector.querySelectorAll('[data-sticker-tab]').forEach(button => button.onclick = () => { stickerTab = button.dataset.stickerTab; renderPanel(); });
+  const drawn = stickerTypes.map(type => `<button class="sticker-option" data-sticker="${type}" aria-label="เพิ่ม${stickerLabels[type]}" title="${stickerLabels[type]}"><canvas width="84" height="84" data-sticker-preview="${type}" aria-hidden="true"></canvas></button>`).join('');
+  const tabs = `<div class="segmented-control" role="tablist" aria-label="ชนิดสติ๊กเกอร์"><button role="tab" id="sticker-tab-drawn" data-sticker-tab="drawn" aria-selected="${stickerTab === 'drawn'}" aria-controls="sticker-library">สติ๊กเกอร์วาด</button><button role="tab" id="sticker-tab-emoji" data-sticker-tab="emoji" aria-selected="${stickerTab === 'emoji'}" aria-controls="sticker-library">อีโมจิ</button></div>`;
+  let library;
+  if (stickerTab === 'drawn') library = `<p class="library-count">${stickerTypes.length} แบบ · เปลี่ยนสีได้</p><div class="sticker-grid" id="sticker-library" role="tabpanel" aria-labelledby="sticker-tab-drawn">${drawn}</div>`;
+  else if (!emojiData) library = '<div class="library-loading" id="emoji-loading"><span class="spinner"></span> กำลังเปิดคลังอีโมจิในเครื่อง…</div>';
+  else library = `${panelControls(`<div class="search-field"><input id="emoji-search" type="search" placeholder="ค้นหา เช่น ยิ้ม, หัวใจ, cat…" aria-label="ค้นหาอีโมจิ" value="${escapeHTML(emojiSearch)}"></div><div class="category-chips emoji-groups" id="emoji-groups">${emojiData.emojiGroups.map(group => `<button class="category-chip ${emojiGroup === group.id ? 'active' : ''}" data-emoji-group="${group.id}" aria-pressed="${emojiGroup === group.id}" title="${group.name}"><span aria-hidden="true">${group.symbol}</span> ${group.name}</button>`).join('')}</div><label class="tone-field">สีผิว<select id="emoji-tone">${emojiData.emojiTones.map(tone => `<option value="${tone.id}" ${emojiTone === tone.id ? 'selected' : ''}>${tone.name}</option>`).join('')}</select></label><p class="library-count" id="emoji-result-count" role="status"></p>`, 'emoji-controls')}<div class="sticker-grid emoji-grid" id="sticker-library" role="tabpanel" aria-labelledby="sticker-tab-emoji"></div><button class="button button-outline full-width" id="emoji-more">แสดงอีโมจิเพิ่ม</button><p class="field-note">คลังข้อมูล Unicode พร้อมรุ่นสีผิว · ใช้ฟอนต์อีโมจิที่โหลดจากเว็บนี้โดยตรง ไม่พึ่งรูปจากเว็บภายนอก</p>`;
+  inspector.innerHTML = `<p class="inspector-description">เลือกแล้วปรับขนาดและมุมได้ทันทีด้านบน คลังอีโมจิอยู่ในเครื่อง ไม่เรียกเว็บภายนอก</p>${object ? objectControls(object, false) : '<div class="object-empty">เลือกสติ๊กเกอร์หรืออีโมจิเพื่อเพิ่มลงบนภาพ</div>'}${tabs}${library}${objectList(state.stickers, 'sticker')}<p class="field-note">วางสติ๊กเกอร์และอีโมจิรวมกันได้สูงสุด 60 ชิ้นต่อภาพ</p>`;
+  inspector.querySelectorAll('[data-sticker-tab]').forEach(button => button.onclick = () => { stickerTab = button.dataset.stickerTab; renderPanel({ resetScroll: true }); });
   inspector.querySelectorAll('[data-sticker-preview]').forEach(target => { const context = target.getContext('2d'); context.translate(42, 42); drawSticker(context, target.dataset.stickerPreview, 62, '#c4a0f5'); });
-  inspector.querySelectorAll('[data-sticker]').forEach(button => button.onclick = () => { if (state.stickers.length >= 60) return notify('ใส่สติ๊กเกอร์และอีโมจิได้สูงสุด 60 รายการต่อภาพ', true); mutate(() => { const object = { id: uid(), type: button.dataset.sticker, x: 0.5, y: 0.5, size: 16, color: '#c4a0f5', rotation: 0 }; state.stickers.push(object); selectedId = object.id; }); });
+  bindStickerButtons();
+  if (stickerTab === 'emoji') {
+    if (!emojiData) ensureEmojiData().then(() => { if (tool === 'stickers' && stickerTab === 'emoji') renderPanel({ resetScroll: true }); }).catch(() => { const loading = $('#emoji-loading'); if (loading) loading.textContent = 'เปิดคลังอีโมจิไม่สำเร็จ ลองกดแท็บอีโมจิอีกครั้ง'; });
+    else {
+      $('#emoji-search').addEventListener('input', event => { emojiSearch = event.target.value; renderEmojiGrid(); });
+      $('#emoji-tone').onchange = event => { emojiTone = event.target.value; renderEmojiGrid(); };
+      inspector.querySelectorAll('[data-emoji-group]').forEach(button => button.onclick = () => { emojiGroup = button.dataset.emojiGroup; inspector.querySelectorAll('[data-emoji-group]').forEach(chip => { const active = chip === button; chip.classList.toggle('active', active); chip.setAttribute('aria-pressed', String(active)); }); renderEmojiGrid(); });
+      $('#emoji-more').onclick = () => appendEmojiChunk();
+      renderEmojiGrid();
+    }
+  }
   bindObjectList(); bindObjectControls(false);
 }
+function bindStickerButtons() {
+  inspector.querySelectorAll('[data-sticker]').forEach(button => button.onclick = () => {
+    if (state.stickers.length >= 60) return notify('ใส่สติ๊กเกอร์และอีโมจิได้สูงสุด 60 รายการต่อภาพ', true);
+    mutate(() => { const object = { id: uid(), type: button.dataset.sticker, x: 0.5, y: 0.5, size: 16, color: '#c4a0f5', rotation: 0 }; state.stickers.push(object); selectedId = object.id; }, false);
+    renderPanel({ resetScroll: true });
+    if (button.dataset.sticker.startsWith('emoji:')) document.fonts.load('16px "Noto Color Emoji"', button.dataset.sticker.slice(6)).then(() => scheduleRender()).catch(() => {});
+  });
+}
+function renderEmojiGrid() {
+  const container = $('#sticker-library');
+  if (!container || !emojiData) return;
+  emojiObserver?.disconnect();
+  emojiVersion++;
+  const terms = emojiSearch.toLowerCase().trim().split(/\s+/).filter(Boolean).flatMap(term => (thaiEmojiKeywords[term] || term).split(' '));
+  const tone = emojiData.emojiTones.find(item => item.id === emojiTone);
+  emojiFiltered = emojiData.emojiEntries.filter(entry => (emojiGroup === 'all' || entry.group === emojiGroup) && (!tone.bit || entry.toneMask & tone.bit) && terms.every(term => `${entry.value} ${entry.name} ${entry.keywords} ${emojiToneLabel(entry.toneMask)}`.toLowerCase().includes(term)));
+  $('#emoji-result-count').textContent = `พบ ${emojiFiltered.length.toLocaleString()} จาก ${emojiData.emojiEntries.length.toLocaleString()} แบบ`;
+  container.replaceChildren();
+  emojiRendered = 0;
+  if (!emojiFiltered.length) container.innerHTML = '<p class="empty-results">ไม่พบอีโมจิ ลองคำอื่น เปลี่ยนหมวด หรือเลือกทุกสีผิว</p>';
+  appendEmojiChunk();
+}
+function appendEmojiChunk() {
+  const container = $('#sticker-library');
+  if (!container || !emojiData) return;
+  const fragment = document.createDocumentFragment();
+  const end = Math.min(emojiFiltered.length, emojiRendered + emojiPageSize);
+  for (let index = emojiRendered; index < end; index++) {
+    const entry = emojiFiltered[index];
+    const button = document.createElement('button');
+    button.className = 'sticker-option emoji-option';
+    button.dataset.sticker = `emoji:${entry.value}`;
+    const tone = entry.toneMask === 1 ? '' : ` · ${emojiToneLabel(entry.toneMask)}`;
+    button.setAttribute('aria-label', `เพิ่มอีโมจิ ${entry.value} · ${entry.name}${tone}`);
+    button.title = `${entry.name}${tone}`;
+    const span = document.createElement('span'); span.setAttribute('aria-hidden', 'true'); span.textContent = entry.value;
+    button.append(span); fragment.append(button);
+  }
+  container.append(fragment);
+  emojiRendered = end;
+  bindStickerButtons();
+  const more = $('#emoji-more');
+  more.hidden = emojiRendered >= emojiFiltered.length;
+  more.textContent = `แสดงเพิ่ม · เหลือ ${(emojiFiltered.length - emojiRendered).toLocaleString()} แบบ`;
+  if (!more.hidden) {
+    emojiObserver?.disconnect();
+    emojiObserver = new IntersectionObserver(entries => { if (entries.some(entry => entry.isIntersecting)) appendEmojiChunk(); }, { root: inspector, rootMargin: '180px' });
+    emojiObserver.observe(more);
+  }
+}
+
 function drawPanel() {
-  inspector.innerHTML = `<p class="inspector-description">วาดเส้นของคุณลงบนภาพ ยางลบจะลบเฉพาะเส้นที่วาด ไม่ลบเนื้อภาพ</p><div class="button-grid">${[['pen', 'ปากกา', 'pen'], ['highlighter', 'ไฮไลต์', 'highlighter'], ['eraser', 'ยางลบ', 'eraser']].map(([id, name, symbol]) => `<button class="option-button ${drawOptions.tool === id ? 'active' : ''}" data-draw-tool="${id}" aria-pressed="${drawOptions.tool === id}">${icon(symbol)}${name}</button>`).join('')}</div><label class="color-field">สีปากกา<input id="draw-color" type="color" value="${drawOptions.color}"></label>${swatchHTML('draw')}${rangeHTML('ความหนาเส้น', 'size', drawOptions.size, 0.2, 8, 'draw', 0.1, '%')}<div class="panel-section button-stack"><button class="button button-outline full-width" id="undo-stroke" ${state.strokes.length ? '' : 'disabled'}>${icon('undo')} ลบเส้นล่าสุด</button><button class="button button-outline danger-button full-width" id="clear-strokes" ${state.strokes.length ? '' : 'disabled'}>${icon('trash')} ล้างเส้นวาดทั้งหมด</button></div><p class="field-note">ทุกเส้นย้อนกลับได้ จำนวนเส้นปัจจุบัน: ${state.strokes.length}</p>`;
+  inspector.innerHTML = `<p class="inspector-description">วาดเส้นของคุณลงบนภาพ ยางลบจะลบเฉพาะเส้นที่วาด ไม่ลบเนื้อภาพ</p><div class="button-grid">${[['pen', 'ปากกา', 'pen'], ['highlighter', 'ไฮไลต์', 'highlighter'], ['eraser', 'ยางลบ', 'eraser']].map(([id, name, symbol]) => `<button class="option-button ${drawOptions.tool === id ? 'active' : ''}" data-draw-tool="${id}" aria-pressed="${drawOptions.tool === id}">${icon(symbol)}${name}</button>`).join('')}</div>${panelControls(`<label class="color-field">สีปากกา<input id="draw-color" type="color" value="${drawOptions.color}"></label>${swatchHTML('draw')}${rangeHTML('ความหนาเส้น', 'size', drawOptions.size, 0.2, 8, 'draw', 0.1, '%')}`)}<div class="panel-section button-stack"><button class="button button-outline full-width" id="undo-stroke" ${state.strokes.length ? '' : 'disabled'}>${icon('undo')} ลบเส้นล่าสุด</button><button class="button button-outline danger-button full-width" id="clear-strokes" ${state.strokes.length ? '' : 'disabled'}>${icon('trash')} ล้างเส้นวาดทั้งหมด</button></div><p class="field-note">ทุกเส้นย้อนกลับได้ จำนวนเส้นปัจจุบัน: ${state.strokes.length}</p>`;
   inspector.querySelectorAll('[data-draw-tool]').forEach(button => button.onclick = () => { drawOptions.tool = button.dataset.drawTool; renderPanel(); });
   $('#draw-color').onchange = event => { drawOptions.color = event.target.value; };
   $('#undo-stroke').onclick = () => mutate(() => { state.strokes.pop(); });
@@ -715,7 +819,7 @@ $('#download-button').onclick = async () => {
   $('#export-error').hidden = true;
   await nextFrame();
   try {
-    await Promise.all(downloadState.texts.map(object => loadFont(object.font)));
+    await Promise.all([...downloadState.texts.map(object => loadFont(object.font)), ...downloadState.stickers.filter(object => object.type.startsWith('emoji:')).map(object => document.fonts.load('16px "Noto Color Emoji"', object.type.slice(6)))]);
     const blob = await exportBlob(source, downloadState, exportFormat, Number($('#export-quality').value) / 100);
     const name = ($('#export-filename').value.trim().replace(/[\\/:*?"<>|\u0000-\u001f]/g, '-').replace(/\.(png|jpe?g|webp)$/i, '') || 'photoedit-image') + $('#export-extension').textContent;
     if (lastExportUrl) URL.revokeObjectURL(lastExportUrl);

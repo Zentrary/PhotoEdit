@@ -267,10 +267,10 @@ test('home comparison handle drags and accessibility scale enlarges the interfac
   await expect(page.locator('[data-ui-scale-value]')).toHaveText('100%');
 });
 
-test('expanded libraries expose 24 effects, 32 frames, 26 fonts, stickers and emoji', async ({ page }) => {
+test('expanded libraries expose 40 effects, 32 frames, 26 fonts, 80 stickers and thousands of emoji', async ({ page }) => {
   await openDemo(page);
   await page.locator('[data-tool="effects"]').click();
-  await expect(page.locator('#inspector-content input[type=range]')).toHaveCount(24);
+  await expect(page.locator('#inspector-content input[type=range]')).toHaveCount(40);
   const before = await pixels(page);
   await page.locator('.effect-group').nth(1).locator('summary').click();
   await setRange(page, '#range-effects-invert', 100);
@@ -281,17 +281,21 @@ test('expanded libraries expose 24 effects, 32 frames, 26 fonts, stickers and em
   await expect(page.locator('[data-frame="stamp"]')).toHaveAttribute('aria-pressed', 'true');
   await page.locator('[data-tool="text"]').click();
   await page.locator('#add-text').click();
+  await page.locator('.font-picker summary').click();
   await expect(page.locator('.font-option')).toHaveCount(26);
   await page.locator('#font-search').fill('Kanit');
   await expect(page.locator('.font-option')).toHaveCount(1);
   await page.locator('.font-option').click();
   await expect(page.locator('.font-option')).toHaveAttribute('aria-selected', 'true');
   await page.locator('[data-tool="stickers"]').click();
-  await expect(page.locator('[data-sticker]')).toHaveCount(40);
+  await expect(page.locator('[data-sticker]')).toHaveCount(80);
   await page.locator('[data-sticker-tab="emoji"]').click();
-  await expect(page.locator('[data-sticker]')).toHaveCount(90);
+  await expect(page.locator('[data-sticker]')).toHaveCount(120);
+  await expect(page.locator('#emoji-result-count')).toContainText('3,714');
+  await page.locator('#emoji-search').fill('rocket');
   await page.locator('[data-sticker="emoji:🚀"]').click();
-  await expect(page.locator('#inspector-content')).toContainText('ปรับสติ๊กเกอร์ที่เลือก');
+  await expect(page.locator('#range-object-size')).toBeInViewport();
+  await expect(page.locator('#inspector-content')).toContainText('สติ๊กเกอร์ที่เลือก');
   await expect(page.locator('#object-color')).toHaveCount(0);
 });
 
@@ -355,4 +359,88 @@ test('motion toggle, section links and FAQ remain usable with reduced motion', a
   await page.locator('.site-header a[href="editor.html"]').click();
   await expect(page).toHaveURL(/editor\.html/);
   await expect(page.locator('#empty-state')).toBeVisible();
+});
+
+
+test('primary controls stay reachable without hunting below long libraries', async ({ page }) => {
+  await openDemo(page);
+  const strength = page.locator('#range-preset-presetStrength');
+  await expect(strength).toBeInViewport();
+  await page.locator('#inspector-content').evaluate(element => { element.scrollTop = element.scrollHeight; });
+  await expect(strength).toBeInViewport();
+  await page.locator('.preset-card').last().click();
+  await expect(strength).toBeInViewport();
+  await setRange(page, '#range-preset-presetStrength', 55);
+  await expect(page.locator('[data-output="preset-presetStrength"]')).toHaveText('55%');
+  await page.locator('[data-tool="frame"]').click();
+  await page.locator('[data-frame="stars"]').scrollIntoViewIfNeeded();
+  await expect(page.locator('[data-frame="stars"] .frame-name')).toBeInViewport();
+  await page.locator('[data-frame="stars"]').click();
+  await expect(page.locator('#range-frame-width')).toBeInViewport();
+  await page.locator('[data-tool="text"]').click();
+  await page.locator('#add-text').click();
+  await expect(page.locator('#object-text')).toBeInViewport();
+  await expect(page.locator('#range-object-size')).toBeInViewport();
+  await page.locator('[data-tool="stickers"]').click();
+  await page.locator('[data-sticker="clover"]').click();
+  await expect(page.locator('#range-object-size')).toBeInViewport();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.locator('[data-open-accessibility]').click();
+  await page.locator('[data-ui-scale="160"]').click();
+  await page.locator('#accessibility-dialog [data-close-dialog]').last().click();
+  await page.locator('[data-tool="presets"]').click();
+  await expect(page.locator('#range-preset-presetStrength')).toBeInViewport();
+});
+
+test('emoji catalog filters skin tones, searches Thai and English, and loads lazily', async ({ page }) => {
+  await openDemo(page);
+  await page.locator('[data-tool="stickers"]').click();
+  await page.locator('[data-sticker-tab="emoji"]').click();
+  await page.waitForSelector('#emoji-search');
+  await expect(page.locator('#emoji-result-count')).toContainText('3,714');
+  await page.locator('#emoji-tone').selectOption('dark');
+  await expect(page.locator('#emoji-result-count')).toContainText('392');
+  await page.locator('#emoji-search').fill('หัวใจ');
+  expect(await page.locator('[data-sticker]').count()).toBeGreaterThan(0);
+  await page.locator('#emoji-search').fill('cat');
+  await expect(page.locator('#emoji-result-count')).not.toContainText('พบ 0 ');
+  await page.locator('#emoji-search').fill('zzzz-no-emoji');
+  await expect(page.locator('#sticker-library')).toContainText('ไม่พบอีโมจิ');
+  await page.locator('#emoji-search').fill('');
+  await page.locator('#emoji-tone').selectOption('all');
+  await page.locator('#emoji-more').scrollIntoViewIfNeeded();
+  await expect.poll(() => page.locator('[data-sticker]').count()).toBeGreaterThan(120);
+  const external = [];
+  page.on('request', request => { if (!request.url().startsWith('http://127.0.0.1:3000') && !request.url().startsWith('data:') && !request.url().startsWith('blob:')) external.push(request.url()); });
+  await page.locator('[data-sticker]').first().click();
+  await expect(page.locator('#range-object-size')).toBeInViewport();
+  expect(external).toEqual([]);
+});
+
+test('every adjustment and effect changes pixels and preserves transparent corners', async ({ page }) => {
+  await page.goto('/editor.html');
+  const result = await page.evaluate(async () => {
+    const { adjustmentKeys, effectKeys, neutral } = await import('/scripts/presets.js');
+    const { initialState, renderImage } = await import('/scripts/engine.js');
+    const source = document.createElement('canvas'); source.width = 96; source.height = 72;
+    const context = source.getContext('2d');
+    for (let y = 0; y < 72; y += 4) for (let x = 0; x < 96; x += 4) { context.fillStyle = `rgb(${(x * 7 + y * 3) % 255},${(x * 3 + y * 9) % 255},${(x * 11 + y) % 255})`; context.fillRect(x, y, 4, 4); }
+    context.clearRect(0, 0, 8, 8);
+    const base = initialState();
+    const original = renderImage(source, base, { maxSide: 96 }).canvas.toDataURL();
+    const unchanged = [];
+    for (const [group, keys] of [['adjustments', adjustmentKeys], ['effects', effectKeys]]) {
+      for (const key of keys) {
+        const state = initialState(); state[group][key] = key === 'blur' ? 8 : 60;
+        const { canvas } = renderImage(source, state, { maxSide: 96 });
+        if (canvas.toDataURL() === original) unchanged.push(`${group}.${key}`);
+      }
+    }
+    const state = initialState(); state.effects.grain = 80; state.effects.fog = 80;
+    const { canvas } = renderImage(source, state, { maxSide: 96 });
+    return { unchanged, alpha: canvas.getContext('2d').getImageData(2, 2, 1, 1).data[3], neutralKeys: Object.keys(neutral).length, keys: adjustmentKeys.length + effectKeys.length };
+  });
+  expect(result.unchanged).toEqual([]);
+  expect(result.alpha).toBe(0);
+  expect(result.neutralKeys).toBeGreaterThanOrEqual(result.keys);
 });
