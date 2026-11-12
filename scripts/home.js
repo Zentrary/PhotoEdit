@@ -1,39 +1,29 @@
-import { presets, getPreset } from './presets.js';
+import { getPreset } from './presets.js';
 import { presetState, renderImage } from './engine.js';
+import { initAccessibility, openDialog, closeDialog, prefersReducedMotion, setMotionOverride } from './ui.js';
 
 const icon = name => `<svg class="icon" aria-hidden="true"><use href="assets/icons.svg#${name}"></use></svg>`;
+initAccessibility();
 const motionButton = document.querySelector('#motion-toggle');
-const mediaMotion = matchMedia('(prefers-reduced-motion: reduce)');
-let reduceMotion = mediaMotion.matches;
 let observer;
-function applyMotion() {
-  document.body.classList.toggle('reduce-motion', reduceMotion);
-  document.body.classList.toggle('motion-enabled', !reduceMotion);
-  motionButton.setAttribute('aria-pressed', String(reduceMotion));
-  motionButton.textContent = reduceMotion ? 'เปิดการเคลื่อนไหว' : 'ลดการเคลื่อนไหว';
+function applyReveals() {
   observer?.disconnect();
-  if (!reduceMotion && 'IntersectionObserver' in window) {
+  if (!prefersReducedMotion() && 'IntersectionObserver' in window) {
     observer = new IntersectionObserver(entries => {
       for (const entry of entries) if (entry.isIntersecting) { entry.target.classList.remove('pending'); observer.unobserve(entry.target); }
-    }, { threshold: 0.08 });
+    }, { threshold: 0.08, rootMargin: '0px 0px -24px 0px' });
     document.querySelectorAll('.reveal').forEach(element => {
       if (element.getBoundingClientRect().top > innerHeight) element.classList.add('pending');
       observer.observe(element);
     });
   } else document.querySelectorAll('.pending').forEach(element => element.classList.remove('pending'));
 }
-motionButton.addEventListener('click', () => { reduceMotion = !reduceMotion; applyMotion(); });
-mediaMotion.addEventListener('change', event => { reduceMotion = event.matches; applyMotion(); });
-applyMotion();
+motionButton.addEventListener('click', () => setMotionOverride(!prefersReducedMotion()));
+document.addEventListener('photoedit:motion', applyReveals);
+applyReveals();
 
 const privacyDialog = document.querySelector('#privacy-dialog');
-document.querySelectorAll('[data-open-privacy]').forEach(button => button.addEventListener('click', () => privacyDialog.showModal()));
-document.querySelectorAll('[data-close-dialog]').forEach(button => button.addEventListener('click', () => button.closest('dialog').close()));
-document.querySelectorAll('dialog').forEach(dialog => dialog.addEventListener('click', event => {
-  if (event.target !== dialog) return;
-  const rect = dialog.getBoundingClientRect();
-  if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) dialog.close();
-}));
+document.querySelectorAll('[data-open-privacy]').forEach(button => button.addEventListener('click', () => openDialog(privacyDialog)));
 
 const comparison = document.querySelector('#hero-comparison');
 const compareInput = document.querySelector('#hero-compare');
@@ -42,6 +32,37 @@ const demoOpen = document.querySelector('#demo-open');
 const image = new Image();
 let activePreset = 'nebula-tint';
 let source;
+let compareDrag = null;
+function setSplit(value) {
+  const split = Math.max(0, Math.min(100, Math.round(value)));
+  compareInput.value = split;
+  compareInput.setAttribute('aria-valuetext', `ก่อน ${split}% หลัง ${100 - split}%`);
+  comparison.style.setProperty('--split', `${split}%`);
+}
+function splitFromPointer(event) {
+  const rect = comparison.getBoundingClientRect();
+  return (event.clientX - rect.left) / rect.width * 100;
+}
+compareInput.addEventListener('input', () => setSplit(Number(compareInput.value)));
+setSplit(Number(compareInput.value));
+comparison.addEventListener('pointerdown', event => {
+  if (event.button !== 0 && event.pointerType === 'mouse') return;
+  event.preventDefault();
+  compareDrag = event.pointerId;
+  comparison.setPointerCapture(event.pointerId);
+  comparison.classList.add('dragging');
+  setSplit(splitFromPointer(event));
+  compareInput.focus({ preventScroll: true });
+});
+comparison.addEventListener('pointermove', event => {
+  if (compareDrag !== event.pointerId) return;
+  setSplit(splitFromPointer(event));
+});
+for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) comparison.addEventListener(type, event => {
+  if (compareDrag !== event.pointerId) return;
+  compareDrag = null;
+  comparison.classList.remove('dragging');
+});
 function renderHero() {
   if (!source) return;
   const result = renderImage(source, presetState(activePreset, 80), { maxSide: 900 });
@@ -51,7 +72,6 @@ function renderHero() {
   document.querySelector('.after-label').textContent = `หลัง · ${getPreset(activePreset).name}`;
   demoOpen.href = `editor.html?demo=1&preset=${activePreset}`;
 }
-compareInput.addEventListener('input', () => comparison.style.setProperty('--split', `${compareInput.value}%`));
 document.querySelectorAll('.demo-preset').forEach(button => button.addEventListener('click', () => {
   activePreset = button.dataset.preset;
   document.querySelectorAll('.demo-preset').forEach(item => { item.classList.toggle('active', item === button); item.setAttribute('aria-pressed', String(item === button)); });
