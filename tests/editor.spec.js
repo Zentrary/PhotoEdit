@@ -53,11 +53,11 @@ test('home loads local assets, compares presets and opens privacy', async ({ pag
 });
 async function pixelsHero(page) { return page.locator('#hero-after').evaluate(canvas => canvas.toDataURL()); }
 
-test('all forty presets, categories, favorites and session looks work', async ({ page }) => {
+test('all two hundred presets, categories, favorites and session looks work', async ({ page }) => {
   await openDemo(page);
-  await expect(page.locator('.preset-card')).toHaveCount(40);
+  await expect(page.locator('.preset-card')).toHaveCount(200);
   await page.locator('.category-chip').filter({ hasText: '90s Film' }).click();
-  await expect(page.locator('.preset-card')).toHaveCount(5);
+  await expect(page.locator('.preset-card')).toHaveCount(25);
   await page.locator('.preset-card').first().click();
   await expect(page.locator('.preset-card').first()).toHaveAttribute('aria-pressed', 'true');
   await page.locator('.favorite-toggle').first().click();
@@ -209,7 +209,7 @@ test('mobile layout stays inside viewport and tools remain reachable', async ({ 
   expect(dialog.width).toBeLessThanOrEqual(390);
 });
 
-test('engine covers every preset and transparent export', async ({ page }) => {
+test('engine covers all 200 presets and transparent export', async ({ page }) => {
   await page.goto('/editor.html');
   const result = await page.evaluate(async () => {
     const { presets } = await import('/scripts/presets.js');
@@ -234,9 +234,125 @@ test('engine covers every preset and transparent export', async ({ page }) => {
     const preview = renderImage(source, resized, { maxSide: 50 }).canvas;
     return { count: hashes.size, alpha: check.getContext('2d').getImageData(30, 15, 1, 1).data[3], frameOffsets, preview: [preview.width, preview.height] };
   });
-  expect(result.count).toBe(40);
+  expect(result.count).toBe(200);
   expect(result.alpha).toBe(0);
   expect(result.frameOffsets.every(Boolean)).toBe(true);
   expect(result.preview[0]).toBeLessThanOrEqual(50);
   expect(result.preview[1]).toBeLessThanOrEqual(50);
+});
+
+test('home comparison handle drags and accessibility scale enlarges the interface', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('#hero-comparison').scrollIntoViewIfNeeded();
+  const before = Number(await page.locator('#hero-compare').inputValue());
+  const handle = await page.locator('.comparison-line > span').boundingBox();
+  await page.mouse.move(handle.x + handle.width / 2, handle.y + handle.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(handle.x + handle.width / 2 + 140, handle.y + handle.height / 2, { steps: 10 });
+  await page.mouse.up();
+  await expect.poll(async () => Number(await page.locator('#hero-compare').inputValue())).toBeGreaterThan(before);
+  await page.locator('#hero-compare').focus();
+  const keyboardBefore = Number(await page.locator('#hero-compare').inputValue());
+  await page.keyboard.press('ArrowLeft');
+  await expect.poll(async () => Number(await page.locator('#hero-compare').inputValue())).toBeLessThan(keyboardBefore);
+  await page.locator('[data-open-accessibility]').click();
+  await page.locator('[data-ui-scale="160"]').click();
+  await expect(page.locator('[data-ui-scale-value]')).toHaveText('160%');
+  await page.locator('#accessibility-dialog [data-close-dialog]').last().click();
+  await expect(page.locator('#accessibility-dialog')).toBeHidden();
+  expect(await page.evaluate(() => getComputedStyle(document.body).zoom)).toBe('1.6');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
+  await page.locator('[data-open-accessibility]').click();
+  await page.locator('#accessibility-reset').click();
+  await expect(page.locator('[data-ui-scale-value]')).toHaveText('100%');
+});
+
+test('expanded libraries expose 24 effects, 32 frames, 26 fonts, stickers and emoji', async ({ page }) => {
+  await openDemo(page);
+  await page.locator('[data-tool="effects"]').click();
+  await expect(page.locator('#inspector-content input[type=range]')).toHaveCount(24);
+  const before = await pixels(page);
+  await page.locator('.effect-group').nth(1).locator('summary').click();
+  await setRange(page, '#range-effects-invert', 100);
+  await expect.poll(() => pixels(page), { timeout: 10000 }).not.toBe(before);
+  await page.locator('[data-tool="frame"]').click();
+  await expect(page.locator('[data-frame]')).toHaveCount(32);
+  await page.locator('[data-frame="stamp"]').click();
+  await expect(page.locator('[data-frame="stamp"]')).toHaveAttribute('aria-pressed', 'true');
+  await page.locator('[data-tool="text"]').click();
+  await page.locator('#add-text').click();
+  await expect(page.locator('.font-option')).toHaveCount(26);
+  await page.locator('#font-search').fill('Kanit');
+  await expect(page.locator('.font-option')).toHaveCount(1);
+  await page.locator('.font-option').click();
+  await expect(page.locator('.font-option')).toHaveAttribute('aria-selected', 'true');
+  await page.locator('[data-tool="stickers"]').click();
+  await expect(page.locator('[data-sticker]')).toHaveCount(40);
+  await page.locator('[data-sticker-tab="emoji"]').click();
+  await expect(page.locator('[data-sticker]')).toHaveCount(90);
+  await page.locator('[data-sticker="emoji:🚀"]').click();
+  await expect(page.locator('#inspector-content')).toContainText('ปรับสติ๊กเกอร์ที่เลือก');
+  await expect(page.locator('#object-color')).toHaveCount(0);
+});
+
+test('action buttons have breathing room and large UI stays inside a mobile viewport', async ({ page }) => {
+  await openDemo(page);
+  await page.locator('[data-tool="draw"]').click();
+  const gap = await page.evaluate(() => {
+    const first = document.querySelector('#undo-stroke').getBoundingClientRect();
+    const second = document.querySelector('#clear-strokes').getBoundingClientRect();
+    return second.top - first.bottom;
+  });
+  expect(gap).toBeGreaterThanOrEqual(10);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.locator('[data-open-accessibility]').click();
+  await page.locator('[data-ui-scale="160"]').click();
+  await page.locator('#accessibility-dialog [data-close-dialog]').last().click();
+  await expect(page.locator('#accessibility-dialog')).toBeHidden();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
+  for (const tool of ['presets', 'adjust', 'effects', 'frame', 'text', 'stickers']) {
+    await page.locator(`[data-tool="${tool}"]`).click();
+    await expect(page.locator('#inspector-title')).toBeVisible();
+  }
+});
+
+test('large UI keeps the editor toolbar and export inside the viewport', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await openDemo(page);
+  await page.locator('[data-open-accessibility]').click();
+  await page.locator('[data-ui-scale="160"]').click();
+  await page.locator('#accessibility-dialog [data-close-dialog]').last().click();
+  await expect(page.locator('#accessibility-dialog')).toBeHidden();
+  const bounds = await page.evaluate(() => {
+    const rail = document.querySelector('.tool-rail').getBoundingClientRect();
+    const exportButton = document.querySelector('#export-button').getBoundingClientRect();
+    return { railBottom: rail.bottom, exportRight: exportButton.right, height: innerHeight, width: innerWidth };
+  });
+  expect(bounds.railBottom).toBeLessThanOrEqual(bounds.height + 1);
+  expect(bounds.exportRight).toBeLessThanOrEqual(bounds.width + 1);
+  await page.locator('#export-button').click();
+  await expect(page.locator('#download-button')).toBeVisible();
+  const dialog = await page.locator('#export-dialog').boundingBox();
+  expect(dialog.x).toBeGreaterThanOrEqual(0);
+  expect(dialog.width).toBeLessThanOrEqual(390);
+});
+
+test('motion toggle, section links and FAQ remain usable with reduced motion', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('#motion-toggle').click();
+  await expect(page.locator('body')).toHaveClass(/reduce-motion/);
+  await page.locator('.desktop-nav a[href="#features"]').click();
+  await expect(page).toHaveURL(/#features$/);
+  const featureTop = await page.locator('#features').evaluate(element => element.getBoundingClientRect().top);
+  expect(featureTop).toBeLessThan(200);
+  const faq = page.locator('.faq-list details').first();
+  await faq.locator('summary').click();
+  await expect(faq).toHaveAttribute('open', '');
+  await faq.locator('summary').click();
+  await expect(faq).not.toHaveAttribute('open', '');
+  await page.locator('#motion-toggle').click();
+  await expect(page.locator('body')).not.toHaveClass(/reduce-motion/);
+  await page.locator('.site-header a[href="editor.html"]').click();
+  await expect(page).toHaveURL(/editor\.html/);
+  await expect(page.locator('#empty-state')).toBeVisible();
 });
