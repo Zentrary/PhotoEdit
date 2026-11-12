@@ -365,7 +365,8 @@ export function renderImage(source, state, options = {}) {
   applyEffects(photo, values);
   const bounds = drawObjects(photo, state, options.selectedId, options.interactive);
   let canvas = addFrame(photo, state.frame);
-  const content = { x: (canvas.width - photo.width) / 2 / canvas.width, y: (canvas.height - photo.height) / 2 / canvas.height, w: photo.width / canvas.width, h: photo.height / canvas.height };
+  const topPadding = ['none', 'rounded'].includes(state.frame.type) ? 0 : Math.round(photo.width * state.frame.width / 100);
+  const content = { x: (canvas.width - photo.width) / 2 / canvas.width, y: topPadding / canvas.height, w: photo.width / canvas.width, h: photo.height / canvas.height };
   if (state.resize) {
     const resized = makeCanvas(target.width * scale, target.height * scale);
     const resizeContext = resized.getContext('2d'); resizeContext.imageSmoothingQuality = 'high'; resizeContext.drawImage(canvas, 0, 0, resized.width, resized.height); canvas = resized;

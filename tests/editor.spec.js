@@ -213,7 +213,7 @@ test('engine covers every preset and transparent export', async ({ page }) => {
   await page.goto('/editor.html');
   const result = await page.evaluate(async () => {
     const { presets } = await import('/scripts/presets.js');
-    const { presetState, renderImage, exportBlob } = await import('/scripts/engine.js');
+    const { initialState, frameTypes, presetState, renderImage, exportBlob } = await import('/scripts/engine.js');
     const source = document.createElement('canvas'); source.width = 40; source.height = 30;
     const context = source.getContext('2d'); const gradient = context.createLinearGradient(0, 0, 40, 30); gradient.addColorStop(0, '#ff8844'); gradient.addColorStop(0.5, '#4488ff'); gradient.addColorStop(1, '#663377'); context.fillStyle = gradient; context.fillRect(0, 0, 40, 30); context.clearRect(30, 0, 10, 30);
     const hashes = new Set();
@@ -224,8 +224,19 @@ test('engine covers every preset and transparent export', async ({ page }) => {
     const blob = await exportBlob(source, presetState(null), 'image/png');
     const bitmap = await createImageBitmap(blob);
     const check = document.createElement('canvas'); check.width = bitmap.width; check.height = bitmap.height; check.getContext('2d').drawImage(bitmap, 0, 0);
-    return { count: hashes.size, alpha: check.getContext('2d').getImageData(30, 15, 1, 1).data[3] };
+    const frameOffsets = frameTypes.map(frame => {
+      const state = initialState(); state.frame.type = frame.id; state.frame.width = 10;
+      const result = renderImage(source, state, { maxSide: 50 });
+      const padding = ['none', 'rounded'].includes(frame.id) ? 0 : 4;
+      return Math.round(result.content.y * result.canvas.height) === padding;
+    });
+    const resized = initialState(); resized.resize = { width: 4000, height: 3000 };
+    const preview = renderImage(source, resized, { maxSide: 50 }).canvas;
+    return { count: hashes.size, alpha: check.getContext('2d').getImageData(30, 15, 1, 1).data[3], frameOffsets, preview: [preview.width, preview.height] };
   });
   expect(result.count).toBe(40);
   expect(result.alpha).toBe(0);
+  expect(result.frameOffsets.every(Boolean)).toBe(true);
+  expect(result.preview[0]).toBeLessThanOrEqual(50);
+  expect(result.preview[1]).toBeLessThanOrEqual(50);
 });
