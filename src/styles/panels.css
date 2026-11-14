@@ -1,0 +1,49 @@
+.panel-controls{position:sticky;top:0;z-index:8;background:#15101f;padding:12px 0 13px;margin:0 0 16px;border-bottom:1px solid var(--line-strong);box-shadow:0 10px 16px #15101f}
+.panel-controls .range-group{margin-bottom:8px}
+.panel-controls .range-group:last-child{margin-bottom:0}
+.control-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px;font-size:11px;color:var(--muted)}
+.control-heading strong{max-width:58%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--purple);font-family:var(--display);font-size:11px;font-weight:500}
+.control-note{font-size:10px;line-height:1.6;color:var(--muted)}
+.preset-controls .range-label label{font-size:10px;color:var(--muted)}
+.frame-controls .color-field{margin-top:4px}
+.frame-grid{max-height:none;overflow:visible;padding:2px}
+.frame-grid .option-button{min-height:88px;justify-content:flex-start;padding:10px 6px;gap:8px;overflow:visible}
+.frame-preview{flex:0 0 31px;border-radius:4px}
+.frame-name{display:block;width:100%;font-size:10px;line-height:1.45;text-align:center;overflow-wrap:anywhere}
+.object-controls{position:relative;top:auto;z-index:2;box-shadow:none;padding-top:14px}
+.object-controls textarea{width:100%;margin-bottom:9px}
+.object-controls .color-field{margin-top:8px}
+.object-controls .swatches{margin:8px 0 12px}
+.compact-ranges{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.compact-ranges .range-group{min-width:0;margin-bottom:10px}
+.object-controls .panel-actions{margin-top:2px}
+.object-controls .panel-actions .button{flex:1;min-width:0;padding-inline:8px}
+.font-picker,.nudge-picker{margin:8px 0;border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.font-picker summary,.nudge-picker summary{cursor:pointer;font-size:11px;color:var(--muted)}
+.font-picker[open] summary,.nudge-picker[open] summary{margin-bottom:10px;color:var(--purple)}
+.font-picker .font-grid{max-height:180px}
+.font-picker .search-field{margin-bottom:9px}
+.nudge-picker .nudge-grid{margin-top:0}
+.emoji-controls{padding-top:10px}
+.emoji-controls .search-field{margin-bottom:9px}
+.emoji-groups{flex-wrap:nowrap;overflow-x:auto;padding-bottom:5px;margin-bottom:9px;scrollbar-width:thin}
+.emoji-groups .category-chip{flex:0 0 auto;white-space:nowrap}
+.tone-field{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:11px;color:var(--muted)}
+.tone-field select{width:auto;min-width:150px;padding:7px 10px;font-size:11px}
+.library-count{font-size:10px;color:var(--muted);margin:8px 0 10px}
+.emoji-controls .library-count{margin-bottom:0}
+.library-loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:28px 8px;font-size:11px;color:var(--muted)}
+.emoji-grid{grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.emoji-option{min-width:0;padding:4px}
+.emoji-option span{font-size:27px}
+#emoji-more{margin-top:12px;font-size:11px}
+.empty-results{grid-column:1/-1}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+body.ui-tiny .inspector{height:clamp(210px,calc(42dvh / var(--ui-scale)),330px)}
+body.ui-tiny .inspector-heading{padding:12px 16px 10px}
+body.ui-tiny .inspector-content{padding-inline:16px}
+body.ui-tiny .panel-controls{padding-block:9px;margin-bottom:12px}
+body.ui-tiny .emoji-grid{grid-template-columns:repeat(6,minmax(0,1fr))}
+body.ui-tiny .compact-ranges{gap:10px}
+@media(max-width:700px){body.large-ui .frame-grid{max-height:none}}
+.emoji-option span{font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}

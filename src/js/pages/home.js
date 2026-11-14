@@ -1,6 +1,6 @@
-import { getPreset } from './presets.js';
-import { presetState, renderImage } from './engine.js';
-import { initAccessibility, openDialog, closeDialog, prefersReducedMotion, setMotionOverride } from './ui.js';
+import { getPreset } from '../core/presets.js';
+import { presetState, renderImage } from '../engine/index.js';
+import { initAccessibility, openDialog, prefersReducedMotion, setMotionOverride } from '../core/ui.js';
 
 const icon = name => `<svg class="icon" aria-hidden="true"><use href="assets/icons.svg#${name}"></use></svg>`;
 initAccessibility();

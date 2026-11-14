@@ -1,13 +1,9 @@
 node_modules
-tests
-test-results
-playwright-report
 scripts/serve.mjs
 scripts/screenshots.mjs
 docs
 package.json
 package-lock.json
-playwright.config.js
 .git
 .gitignore
 .vercel
