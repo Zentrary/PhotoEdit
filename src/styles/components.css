@@ -1,0 +1,30 @@
+.button{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:46px;padding:11px 22px;border-radius:9px;font-size:13px;font-weight:600;white-space:nowrap;border:1px solid transparent;line-height:1.4}
+.button-primary{background:#b795ef;color:#1b102c;border-color:#caa8ff;box-shadow:0 0 24px #a879ef16,inset 0 1px 0 #ffffff30}
+.button-primary:hover:not(:disabled){background:#c9a9ff;box-shadow:0 0 32px #a879ef36;transform:translateY(-2px)}
+.button-outline{border-color:var(--line-strong);background:#ffffff03}
+.button-outline:hover:not(:disabled){border-color:#b794f670;background:#b794f611}
+.button-ghost{color:var(--muted)}
+.button-ghost:hover:not(:disabled),.button-ghost.active{color:var(--purple);background:#b794f615}
+.button-small{min-height:38px;padding:9px 15px;font-size:12px}
+.button-small .icon{width:17px;height:17px}
+.button-large{min-height:54px;padding:15px 26px;font-size:15px;border-radius:10px}
+.text-button{display:inline-flex;align-items:center;gap:9px;color:var(--purple);font-size:13px;font-weight:500;padding:6px 0}
+.text-button:hover{color:#dfc9ff}
+.text-button .icon{width:16px;height:16px}
+.icon-button{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;padding:8px;border-radius:8px;color:var(--muted);flex-shrink:0}
+.icon-button:hover:not(:disabled){color:var(--text);background:#ffffff0a}
+.icon-button.active,.icon-button[aria-pressed=true]{color:var(--purple);background:#b794f619}
+.full-width{width:100%}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--mint);box-shadow:0 0 9px #9ee2c444;display:inline-block;flex-shrink:0}
+.brand{display:inline-flex;align-items:center;gap:10px;font-family:var(--display);font-size:25px;font-weight:700;letter-spacing:-1.2px;line-height:1}
+.brand-mark{display:flex;align-items:center;justify-content:center;color:#c1a0f5;width:35px;height:35px}
+.brand-mark .icon{width:32px;height:32px;stroke-width:1.5}
+.brand-light{font-weight:400}
+.brand-dot{color:var(--purple)}
+.section-kicker,.inspector-kicker{display:block;font-family:var(--display);font-size:10px;font-weight:500;letter-spacing:2.3px;color:var(--purple)}
+.cosmic-background{position:absolute;inset:0 0 auto;height:1200px;overflow:hidden;pointer-events:none;z-index:-1;background:radial-gradient(ellipse at 50% 28%,#35204b2b,transparent 60%)}
+.nebula{position:absolute;border-radius:50%;filter:blur(85px);opacity:.24}
+.nebula-one{width:580px;height:450px;left:-320px;top:370px;background:#583171}
+.nebula-two{width:630px;height:400px;right:-320px;top:290px;background:#342562}
+.star-field{position:absolute;inset:0;background-image:radial-gradient(1px 1px at 10% 18%,#e5d1ff90 50%,transparent 100%),radial-gradient(1px 1px at 84% 12%,#e5d1ff90 50%,transparent 100%),radial-gradient(1.5px 1.5px at 72% 39%,#e5d1ff70 50%,transparent 100%),radial-gradient(1px 1px at 19% 53%,#e5d1ff90 50%,transparent 100%),radial-gradient(1px 1px at 94% 62%,#e5d1ff70 50%,transparent 100%),radial-gradient(1px 1px at 5% 75%,#e5d1ff70 50%,transparent 100%);background-size:570px 440px;animation:twinkle 7s ease-in-out infinite alternate}
+.orbital-line{position:absolute;width:1500px;height:700px;border:1px solid #bc8bef09;border-radius:50%;top:320px;left:50%;transform:translateX(-50%) rotate(-12deg)}

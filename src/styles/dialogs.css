@@ -1,0 +1,17 @@
+.modal{color:var(--text);background:#191322;border:1px solid #b794f63b;border-radius:18px;padding:28px;width:min(480px,calc(100% - 32px));max-height:calc(100dvh - 40px);overflow-y:auto;box-shadow:0 35px 130px #0009}
+.modal::backdrop{background:#07050dbb;backdrop-filter:blur(8px)}
+.modal[open]{animation:modal-in .2s ease-out}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;gap:16px}
+.modal-header .icon-button{margin:-8px -8px 0 0}
+.modal h2{font-size:24px;font-weight:500;letter-spacing:-.5px;margin-bottom:12px}
+.modal h3{font-size:15px;margin-top:22px}
+.modal-symbol{display:grid;place-items:center;width:42px;height:42px;border-radius:12px;background:#b794f614;color:var(--purple)}
+.modal-description{font-size:12px;color:var(--muted);margin-bottom:20px}
+.privacy-details p{font-size:12px;color:var(--muted);line-height:1.95;margin-bottom:15px}
+.privacy-details{margin:18px 0 24px}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:25px}
+.confirm-modal>p{font-size:13px;color:var(--muted)}
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);z-index:100;background:#2a2235;border:1px solid #b794f64d;box-shadow:0 10px 40px #0006;padding:12px 19px;border-radius:10px;display:flex;align-items:center;gap:9px;font-size:12px;max-width:calc(100% - 32px);width:max-content}
+.toast .icon{color:var(--mint);width:17px;height:17px}
+.toast.error{border-color:#ee9b9b60}
+.toast.error .icon{color:#ee9b9b}

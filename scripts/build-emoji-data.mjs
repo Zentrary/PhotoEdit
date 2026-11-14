@@ -56,7 +56,7 @@ for (const value of ordered) {
   if (entry.skin_tone_support) for (const [variant, mask] of toneVariants(value)) add(variant, entry.name, entry.group, words, mask);
 }
 const header = `export const emojiGroups = ${JSON.stringify(groups.map(([id, name, symbol]) => ({ id, name, symbol })))};\nexport const emojiTones = ${JSON.stringify(tones.map(({ id, name, bit, color }) => ({ id, name, bit, color })))};\nconst rows = ${JSON.stringify(rows)};\nexport const emojiEntries = rows.map(([value, name, group, keywords, toneMask]) => ({ value, name, group: emojiGroups[group].id, keywords, toneMask }));\n`;
-await writeFile('scripts/emoji-data.js', header);
+await writeFile('src/js/core/data/emoji.js', header);
 await mkdir('assets/licenses', { recursive: true });
 const licenses = await Promise.all([resolve(source, 'LICENSE'), resolve(keywordFile, '../../LICENSE')].map(path => readFile(path, 'utf8')));
 await writeFile('assets/licenses/emoji-data.txt', `unicode-emoji-json 0.9.0\nhttps://github.com/muan/unicode-emoji-json\n\n${licenses[0]}\n\nemojilib 4.0.3\nhttps://github.com/muan/emojilib\n\n${licenses[1]}`);
